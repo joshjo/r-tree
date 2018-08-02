@@ -3,9 +3,10 @@
 #include <iostream>
 #include <typeinfo>
 #include <string>
-
+#include <utility>
 // Added for the json-example
 #define BOOST_SPIRIT_THREADSAFE
+typedef std::pair<double, double> Point;
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
@@ -19,19 +20,12 @@
 #endif
 
 using namespace std;
+//#define pair<int, int> point
 // Added for the json-example:
 using namespace boost::property_tree;
 
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 using HttpClient = SimpleWeb::Client<SimpleWeb::HTTP>;
-struct Point{
-    int x;
-    int y;
-    Point(const int & xx, const int & yy) {
-        x = xx;
-        y = yy;
-    }
-};
 
 int main() {
     // HTTP-server at port 8080 using 1 thread
@@ -39,35 +33,8 @@ int main() {
     // 1 thread is usually faster than several threads
     HttpServer server;
     server.config.port = 8090;
-
-    // Add resources using path-regex and method-string, and an anonymous function
-    // POST-example for the path /string, responds the posted string
-    server.resource["^/string$"]["POST"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
-        // Retrieve string:
-        auto content = request->content.string();
-        // request->content.string() is a convenience function for:
-        // stringstream ss;
-        // ss << request->content.rdbuf();
-        // auto content=ss.str();
-
-        *response << "HTTP/1.1 200 OK\r\nContent-Length: " << content.length() << "\r\n\r\n"
-                << content;
-
-
-        // Alternatively, use one of the convenience functions, for instance:
-        // response->write(content);
-    };
-
-    // POST-example for the path /json, responds firstName+" "+lastName from the posted json
-    // Responds with an appropriate error message if the posted json is not valid, or if firstName or lastName is missing
-    // Example posted json:
-    // {
-    //   "firstName": "John",
-    //   "lastName": "Smith",
-    //   "age": 25
-    // }
-
-    vector<int> vp;
+	
+	//Get rtree
     server.resource["^/rtree$"]["GET"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         stringstream stream;
         //ostringstream ss;
@@ -79,10 +46,43 @@ int main() {
         stream << json_string;
             response->write_get(stream,header);
     };
-    /*
-    * Post rtree
-    */
-    server.resource["^/rtree$"]["POST"] = [&vp](
+	
+    //Post rtree
+	vector<int> v;
+	vector<Point> pv;
+    server.resource["^/rtree$"]["POST"] = [&v,&pv](
+            shared_ptr<HttpServer::Response> response,
+            shared_ptr<HttpServer::Request> request
+        ) {
+        stringstream stream;
+        string json_string = "{}";
+        stream << json_string;
+		SimpleWeb::CaseInsensitiveMultimap header;
+        try {
+            ptree pt;
+            read_json(request->content, pt);
+            for (boost::property_tree::ptree::value_type& rowPair:pt.get_child("polygon")) {
+                for (boost::property_tree::ptree::value_type& itemPair : rowPair.second) {
+                    int value = itemPair.second.get_value<int>();
+                    v.push_back(value);
+                }
+            }
+            for (size_t i = 0; i < v.size(); i += 2) {
+                 cout << v[i] << ", " << v[i+1] << endl;
+				 Point point = {v[i],v[i+1]};
+				 pv.push_back(point);
+            }
+            response->write(stream,header);
+        } catch (const exception &e) {
+            response->write(
+                SimpleWeb::StatusCode::client_error_bad_request,
+                e.what()
+            );
+        }
+    };
+	
+	//Post search/nearest
+	server.resource["^/search/nearest$"]["POST"] = [&pv](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
@@ -92,17 +92,11 @@ int main() {
 
         try {
             ptree pt;
-            read_json(request->content, pt);
-            for (boost::property_tree::ptree::value_type& rowPair:pt.get_child("polygon")) {
-                for (boost::property_tree::ptree::value_type& itemPair : rowPair.second) {
-                    int value = itemPair.second.get_value<int>();
-                    vp.push_back(value);
-                    cout << "->" << value << endl;
-                }
-            }
-            for (size_t i = 0; i < vp.size(); i += 2) {
-                cout << vp[i] << ", " << vp[i+1] << endl;
-            }
+			read_json(request->content, pt);
+            int id = pt.get_child("id").get_value<int>();
+			int k = pt.get_child("k").get_value<int>();
+			cout << id << " " << k << endl;
+			//use pv for search
             response->write(stream);
         } catch (const exception &e) {
             response->write(
@@ -111,26 +105,74 @@ int main() {
             );
         }
     };
+	//Post search/range
+	server.resource["^/search/range$"]["POST"] = [&pv](
+            shared_ptr<HttpServer::Response> response,
+            shared_ptr<HttpServer::Request> request
+        ) {
+        stringstream stream;
+        string json_string = "{}";
+        stream << json_string;
 
-    // GET-example for the path /match/[number], responds with the matched string in path (number)
-    // For instance a request GET /match/123 will receive: 123
-    server.resource["^/match/([0-9]+)$"]["GET"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
-        response->write(request->path_match[1].str());
+        try {
+            ptree pt;
+			read_json(request->content, pt);
+            int min = pt.get_child("min").get_value<int>();
+			int max = pt.get_child("max").get_value<int>();
+			cout << id << " " << k << endl;
+			//use pv for search
+            response->write(stream);
+        } catch (const exception &e) {
+            response->write(
+                SimpleWeb::StatusCode::client_error_bad_request,
+                e.what()
+            );
+        }
     };
-    /*vector<int> array;
-    bool insert(int num){
-    array.push_back(num);
-    }*/
-
-    // GET-example simulating heavy work in a separate thread
-    server.resource["^/work$"]["GET"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> /*request*/) {
-        thread work_thread([response] {
-        this_thread::sleep_for(chrono::seconds(5));
-        response->write("Work done");
-        });
-        work_thread.detach();
-    };
-
+    //Delete rtree
+	server.resource["^/rtree$"]["DELETE"] = [&pv](
+            shared_ptr<HttpServer::Response> response,
+            shared_ptr<HttpServer::Request> request
+        ) {
+		stringstream stream;
+        string json_string = "{}";
+        stream << json_string;
+		SimpleWeb::CaseInsensitiveMultimap header;
+        try {
+            ptree pt;
+			read_json(request->content, pt);
+            int id = pt.get_child("id").get_value<int>();
+			cout << id << endl;
+			//use pv for delete pg
+            response->write(stream,header);
+        } catch (const exception &e) {
+            response->write(
+                SimpleWeb::StatusCode::client_error_bad_request,
+                e.what()
+            );
+        }
+	};
+	
+	//delete/reset rtree
+	server.resource["^/rtree/reset$"]["DELETE"] = [&pv](
+            shared_ptr<HttpServer::Response> response,
+            shared_ptr<HttpServer::Request> request
+        ) {
+		stringstream stream;
+        string json_string = "{}";
+        stream << json_string;
+		SimpleWeb::CaseInsensitiveMultimap header;
+        try {
+			//delete pv
+            response->write(stream,header);
+        } catch (const exception &e) {
+            response->write(
+                SimpleWeb::StatusCode::client_error_bad_request,
+                e.what()
+            );
+        }
+	};	
+	
     // Default GET-example. If no other matches, this anonymous function will be called.
     // Will respond with content in the web/-directory, and its subdirectories.
     // Default file: index.html
@@ -231,11 +273,11 @@ int main() {
 
     // Synchronous request examples
     try {
-        auto r1 = client.request("GET", "/match/123");
+        /*auto r1 = client.request("GET", "/match/123");
         cout << r1->content.rdbuf() << endl; // Alternatively, use the convenience function r1->content.string()
 
         auto r2 = client.request("POST", "/string", json_string);
-        cout << r2->content.rdbuf() << endl;
+        cout << r2->content.rdbuf() << endl;*/
     }
     catch(const SimpleWeb::system_error &e) {
         cerr << "Client request error: " << e.what() << endl;
