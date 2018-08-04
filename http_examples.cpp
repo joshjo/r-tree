@@ -6,7 +6,7 @@
 #include <utility>
 // Added for the json-example
 #define BOOST_SPIRIT_THREADSAFE
-typedef std::pair<double, double> Point;
+typedef std::pair<int, int> Point;
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
@@ -33,30 +33,30 @@ int main() {
     // 1 thread is usually faster than several threads
     HttpServer server;
     server.config.port = 8090;
+	vector<int> v;
+	vector<Point> pv;
 	
 	//Get rtree
-    server.resource["^/rtree$"]["GET"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
+    server.resource["^/rtree$"]["GET"] = [&pv](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         stringstream stream;
-        //ostringstream ss;
-        //ss << request;
-        //cout << ss << endl;
-        // Set header fields
         SimpleWeb::CaseInsensitiveMultimap header;
-        string json_string = "";
+        string json_string = "['polygon':[";
+		for(auto x : pv)
+		{
+			json_string += "[" + std::to_string(std::get<0>(x)) + "," + std::to_string(std::get<1>(x)) + "]";
+		}
+		json_string += "]";
         stream << json_string;
-            response->write_get(stream,header);
+		response->write_get(stream,header);
     };
 	
     //Post rtree
-	vector<int> v;
-	vector<Point> pv;
     server.resource["^/rtree$"]["POST"] = [&v,&pv](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
         stringstream stream;
-        string json_string = "{}";
-        stream << json_string;
+        string json_string = "";
 		SimpleWeb::CaseInsensitiveMultimap header;
         try {
             ptree pt;
@@ -72,7 +72,29 @@ int main() {
 				 Point point = {v[i],v[i+1]};
 				 pv.push_back(point);
             }
-            response->write(stream,header);
+			json_string = "['status': true]";
+			stream << json_string;
+            response->write_get(stream,header);
+        } catch (const exception &e) {
+            response->write(
+                SimpleWeb::StatusCode::client_error_bad_request,
+                e.what()
+            );
+        }
+    };
+	
+	//Option rtree
+	server.resource["^/rtree$"]["OPTIONS"] = [](
+            shared_ptr<HttpServer::Response> response,
+            shared_ptr<HttpServer::Request> request
+        ) {
+        stringstream stream;
+        string json_string = "";
+		SimpleWeb::CaseInsensitiveMultimap header;
+        try {
+            json_string = "['status': true]";
+			stream << json_string;
+            response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
                 SimpleWeb::StatusCode::client_error_bad_request,
@@ -89,7 +111,7 @@ int main() {
         stringstream stream;
         string json_string = "{}";
         stream << json_string;
-
+		SimpleWeb::CaseInsensitiveMultimap header;
         try {
             ptree pt;
 			read_json(request->content, pt);
@@ -97,7 +119,7 @@ int main() {
 			int k = pt.get_child("k").get_value<int>();
 			cout << id << " " << k << endl;
 			//use pv for search
-            response->write(stream);
+            response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
                 SimpleWeb::StatusCode::client_error_bad_request,
@@ -105,6 +127,28 @@ int main() {
             );
         }
     };
+	
+	//Options search/nearest
+	server.resource["^/search/nearest$"]["OPTIONS"] = [](
+            shared_ptr<HttpServer::Response> response,
+            shared_ptr<HttpServer::Request> request
+        ) {
+        stringstream stream;
+        string json_string = "{}";
+        stream << json_string;
+		SimpleWeb::CaseInsensitiveMultimap header;
+        try {
+            ptree pt;
+			//use pv for search
+            response->write_get(stream,header);
+        } catch (const exception &e) {
+            response->write(
+                SimpleWeb::StatusCode::client_error_bad_request,
+                e.what()
+            );
+        }
+    };
+	
 	//Post search/range
 	server.resource["^/search/range$"]["POST"] = [&pv](
             shared_ptr<HttpServer::Response> response,
@@ -113,15 +157,15 @@ int main() {
         stringstream stream;
         string json_string = "{}";
         stream << json_string;
-
+		SimpleWeb::CaseInsensitiveMultimap header;
         try {
             ptree pt;
 			read_json(request->content, pt);
             int min = pt.get_child("min").get_value<int>();
 			int max = pt.get_child("max").get_value<int>();
-			cout << id << " " << k << endl;
+			cout << min << " " << max << endl;
 			//use pv for search
-            response->write(stream);
+            response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
                 SimpleWeb::StatusCode::client_error_bad_request,
@@ -129,6 +173,27 @@ int main() {
             );
         }
     };
+	
+	//options search/range
+	server.resource["^/search/range$"]["OPTIONS"] = [](
+            shared_ptr<HttpServer::Response> response,
+            shared_ptr<HttpServer::Request> request
+        ) {
+        stringstream stream;
+        string json_string = "{}";
+		SimpleWeb::CaseInsensitiveMultimap header;
+        try {
+			json_string = "['status': true]";
+			stream << json_string;            
+            response->write_get(stream,header);
+        } catch (const exception &e) {
+            response->write(
+                SimpleWeb::StatusCode::client_error_bad_request,
+                e.what()
+            );
+        }
+    };
+	
     //Delete rtree
 	server.resource["^/rtree$"]["DELETE"] = [&pv](
             shared_ptr<HttpServer::Response> response,
@@ -136,7 +201,6 @@ int main() {
         ) {
 		stringstream stream;
         string json_string = "{}";
-        stream << json_string;
 		SimpleWeb::CaseInsensitiveMultimap header;
         try {
             ptree pt;
@@ -144,7 +208,9 @@ int main() {
             int id = pt.get_child("id").get_value<int>();
 			cout << id << endl;
 			//use pv for delete pg
-            response->write(stream,header);
+			json_string = "['status': true]";
+			stream << json_string;            
+            response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
                 SimpleWeb::StatusCode::client_error_bad_request,
@@ -160,18 +226,20 @@ int main() {
         ) {
 		stringstream stream;
         string json_string = "{}";
-        stream << json_string;
 		SimpleWeb::CaseInsensitiveMultimap header;
         try {
-			//delete pv
-            response->write(stream,header);
+			pv.clear();
+			json_string = "['status': true]";
+			stream << json_string;            
+            response->write_get(stream,header);
+            response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
                 SimpleWeb::StatusCode::client_error_bad_request,
                 e.what()
             );
         }
-	};	
+	};
 	
     // Default GET-example. If no other matches, this anonymous function will be called.
     // Will respond with content in the web/-directory, and its subdirectories.
