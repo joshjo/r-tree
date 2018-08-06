@@ -8,8 +8,8 @@ class RTree
 {
     private:
         Node<T> *root;
-        int minEntries;
-        int maxEntries;
+        int minEntries; // m
+        int maxEntries; // M
         int treeLevel;
         bool firstTime;
         int identifier;
@@ -19,7 +19,7 @@ class RTree
         RTree(int minEntries, int maxEntries)
         {
             this->identifier = 0;
-            this->root = new Node<T>(maxEntries, identifier );
+            this->root = new Node<T>(maxEntries, identifier);
             this->identifier++;
             this->minEntries = minEntries;
             this->maxEntries = maxEntries;
@@ -392,9 +392,7 @@ class RTree
 
     void insert(Polygon<T> *polygon)
     {
-
-        if(firstTime)
-        {
+        if (firstTime) {
             root->polygons[root->count] = Polygon<T>(polygon->x, polygon->y, polygon->identifier);
             root->count++;
             firstTime = false;

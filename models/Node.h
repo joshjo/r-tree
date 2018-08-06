@@ -1,6 +1,7 @@
 #ifndef NODE_H
 #define NODE_H
 
+
 #include "Lolygon.h"
 #include "Rectangle.h"
 
@@ -23,8 +24,9 @@ class Node
         Node(int maxEntries, int identifier)
         {
             this->count = 0;
+            this->father = 0;
             this->maxEntries = maxEntries;
-            this->rectangle = new Rectangle<T>(1000000,-1000000,1000000,-1000000, identifier);
+            this->rectangle = new Rectangle<T>(INF, -INF, INF, -INF, identifier);
             this->children = new Node<T>[maxEntries];
             this->polygons = new Polygon<T>[maxEntries];
             this->leaf = true;
