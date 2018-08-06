@@ -18,8 +18,9 @@ class RTree
         RTree(){}
         RTree(int minEntries, int maxEntries)
         {
+            this->identifier = 0;
             this->root = new Node<T>(maxEntries, identifier );
-            identifier++;
+            this->identifier++;
             this->minEntries = minEntries;
             this->maxEntries = maxEntries;
             this->treeLevel = 0;
