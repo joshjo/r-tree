@@ -490,12 +490,22 @@ class RTree
         vector<Node<T>* > L;
         vector<Node<T>* > NL;
 
-        string json_string = "{\"regions\": [ ";
+        string json_string = "{\"polygon\": [ ";
+        for(auto node : L){
+            json_string += "{\"id\":" + std::to_string(node->polygons->get_id()) + ",\"polygon\": [";
+
+            for (auto point : node->get_polygon()->get_points()) {
+                json_string += point.to_string();
+            }
+            json_string.pop_back();
+            json_string += "]},";
+        }
+        
+        json_string += "{\"regions\": [ ";
 
         get_all(L, NL);
 
         for (auto node : NL) {
-            // for(auto y : x.getVectorPoints())
             json_string += "{\"id\":" + std::to_string(node->rectangle->get_id()) + ",\"polygon\": [";
 
             for (auto point: node->get_rectangle()->get_box()) {

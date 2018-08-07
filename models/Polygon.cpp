@@ -30,8 +30,7 @@ class Polygon
             this->min = pMin;
             this->max = pMax;
         }
-
-
+        
         Polygon<T> copy()
         {
             return Polygon(points, identifier,min,max);

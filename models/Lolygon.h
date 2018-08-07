@@ -37,6 +37,9 @@ class Polygon
             this->min = p;
             this->max = p;
         }
+        int get_id(){
+            return identifier;
+        }
         void print() {
             cout << "points: ";
             for (size_t i = 0; i < points.size(); ++i) {
@@ -52,6 +55,9 @@ class Polygon
         Polygon<T> copy()
         {
             return *(new Polygon(points, identifier, min, max));
+        }
+        vector<P> get_points(){
+            return points;
         }
     friend class RTree<T>;
     friend class Node<T>;

@@ -40,7 +40,11 @@ class Node
         int size() {
             return count;
         }
-
+        
+        Polygon<T>* get_polygon() {
+            return polygons;
+        }
+        
         Rectangle<T>* get_rectangle() {
             return rectangle;
         }
