@@ -9,8 +9,8 @@ class RTree
     typedef Point<T> P;
     private:
         Node<T> *root;
-        int minEntries;
-        int maxEntries;
+        int minEntries; // m
+        int maxEntries; // M
         int treeLevel;
         bool firstTime;
         int identifier;
@@ -19,8 +19,9 @@ class RTree
         RTree(){}
         RTree(int minEntries, int maxEntries)
         {
-            this->root = new Node<T>(maxEntries, identifier );
-            identifier++;
+            this->identifier = 0;
+            this->root = new Node<T>(maxEntries, identifier);
+            this->identifier++;
             this->minEntries = minEntries;
             this->maxEntries = maxEntries;
             this->treeLevel = 0;
@@ -396,7 +397,7 @@ class RTree
 
         if(firstTime)
         {
-            root->polygons[root->count] = polygon->copy();;
+            root->polygons[root->count] = polygon->copy();
             root->count++;
             firstTime = false;
             updateRectangle(root, polygon);

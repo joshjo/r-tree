@@ -18,40 +18,45 @@ int main() {
     Polygon<dtype> *poly2 = new Polygon<dtype>(3,4,count++);
     Polygon<dtype> *poly3 = new Polygon<dtype>(3,1,count++);
 
+    Polygon<cid> *poly = new Polygon<cid>(2,3, lid++);
+    Polygon<cid> *poly1 = new Polygon<cid>(2,6, lid++);
+    Polygon<cid> *poly2 = new Polygon<cid>(3,4, lid++);
+    Polygon<cid> *poly3 = new Polygon<cid>(3,1, lid++);
+    RTree<cid> *tree = new RTree<cid>(2,5);
     tree->insert(poly);
     tree->insert(poly1);
     tree->insert(poly2);
     tree->insert(poly3);
 
-    Polygon<string> *poly4 = new Polygon<string>(6,9,"E");
+    Polygon<cid> *poly4 = new Polygon<cid>(6,9,lid++);
     tree->insert(poly4);
-    Polygon<string> *poly5 = new Polygon<string>(3,3,"F");
+    Polygon<cid> *poly5 = new Polygon<cid>(3,3,lid++);
     tree->insert(poly5);
-    Polygon<string> *poly6 = new Polygon<string>(9,2,"G");
+    Polygon<cid> *poly6 = new Polygon<cid>(9,2,lid++);
     tree->insert(poly6);
-    Polygon<string> *poly7 = new Polygon<string>(8,3,"H");
+    Polygon<cid> *poly7 = new Polygon<cid>(8,3,lid++);
     tree->insert(poly7);
-    Polygon<string> *poly8 = new Polygon<string>(9,6,"I");
+    Polygon<cid> *poly8 = new Polygon<cid>(9,6,lid++);
     tree->insert(poly8);
-    Polygon<string> *poly9 = new Polygon<string>(9,6,"J");
+    Polygon<cid> *poly9 = new Polygon<cid>(9,6,lid++);
     tree->insert(poly9);
-    Polygon<string> *poly10 = new Polygon<string>(9,6,"K");
+    Polygon<cid> *poly10 = new Polygon<cid>(9,6,lid++);
     tree->insert(poly10);
-    Polygon<string> *poly11 = new Polygon<string>(9,6,"L");
+    Polygon<cid> *poly11 = new Polygon<cid>(9,6,lid++);
     tree->insert(poly11);
-    Polygon<string> *poly12 = new Polygon<string>(11,8,"M");
+    Polygon<cid> *poly12 = new Polygon<cid>(11,8,lid++);
     tree->insert(poly12);
-    Polygon<string> *poly13 = new Polygon<string>(13,9,"N");
+    Polygon<cid> *poly13 = new Polygon<cid>(13,9,lid++);
     tree->insert(poly13);
 
-    Polygon<string> *poly14 = new Polygon<string>(13,8,"Ñ");
+    Polygon<cid> *poly14 = new Polygon<cid>(13,8,lid++);
     tree->insert(poly14);
-    Polygon<string> *poly15 = new Polygon<string>(14,9,"O");
+    Polygon<cid> *poly15 = new Polygon<cid>(14,9,lid++);
     tree->insert(poly15);
-    Polygon<string> *poly16 = new Polygon<string>(15,8,"P");
+    Polygon<cid> *poly16 = new Polygon<cid>(15,8,lid++);
     tree->insert(poly16);
 
-    Polygon<string> *poly17 = new Polygon<string>(15,11,"Q");
+    Polygon<cid> *poly17 = new Polygon<cid>(15,11,lid++);
     tree->insert(poly17);
 
 	 */

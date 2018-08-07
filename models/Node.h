@@ -1,6 +1,7 @@
 #ifndef NODE_H
 #define NODE_H
 
+
 #include "Lolygon.h"
 #include "Rectangle.h"
 
@@ -24,6 +25,7 @@ class Node
         Node(int maxEntries, int identifier)
         {
             this->count = 0;
+            this->father = 0;
             this->maxEntries = maxEntries;
             int inf = 1000000;
             P max(inf,inf);
@@ -72,7 +74,7 @@ class Node
 
         rectangle->min = min;
         rectangle->max = max;
-		
+
         return area;
     }
 
