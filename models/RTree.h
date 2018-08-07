@@ -55,7 +55,7 @@ class RTree
             if(nodeC->rectangle->min.x < nodeF->rectangle->min.x)
                 nodeF->rectangle->min.x = nodeC->rectangle->min.x;
 
-            if(nodeC->rectangle->maxX > nodeF->rectangle->maxX)
+            if(nodeC->rectangle->max.x > nodeF->rectangle->max.x)
                 nodeF->rectangle->max.x = nodeC->rectangle->max.x;
 
             if(nodeC->rectangle->min.y < nodeF->rectangle->min.y)
@@ -112,14 +112,14 @@ class RTree
 
         for(int i=0; i<node->count; i++)
         {
-            //Todo: tranformation in polygon  
+            //Todo: tranformation in polygon
             p1.x = node->polygons[i].points[0].x;
             p1.y = node->polygons[i].points[0].y;
 
             for(int j=i+1; j< node->count; j++)
             {
-                p2.x = node->polygons[j].point[0].x;
-                p2.y = node->polygons[j].point[0].y;
+                p2.x = node->polygons[j].points[0].x;
+                p2.y = node->polygons[j].points[0].y;
 
                 distance = sqrt(pow((p1.x - p2.x),2) +pow((p1.y - p2.y),2));
 

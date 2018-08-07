@@ -7,14 +7,15 @@ using namespace std;
 typedef int dtype;
 
 int main() {
-	
+
     RTree<dtype> *tree = new RTree<dtype>(2,5);
     int count = 1;
-    
+
     Polygon<dtype> *poly = new Polygon<dtype>(*(new Point<dtype>(2,3)),count++);
     Polygon<dtype> *poly2 = new Polygon<dtype>(*(new Point<dtype>(4,6)),count++);
-    tree->insert(poly);  
-  /*Polygon<dtype> *poly2 = new Polygon<dtype>(3,4,count++);
+    tree->insert(poly);
+  /*
+    Polygon<dtype> *poly2 = new Polygon<dtype>(3,4,count++);
     Polygon<dtype> *poly3 = new Polygon<dtype>(3,1,count++);
 
     tree->insert(poly);
@@ -53,7 +54,7 @@ int main() {
     Polygon<string> *poly17 = new Polygon<string>(15,11,"Q");
     tree->insert(poly17);
 
-    tree->print();
 	 */
+    tree->print();
     return 0;
 }

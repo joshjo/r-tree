@@ -12,15 +12,15 @@ class Rectangle
 {
 	typedef Point<T> P;
     private:
-		int identifier;
-		P min = P();
-		P max = P();
+        int identifier;
+        P min = P();
+        P max = P();
     public:
         Rectangle(){}
         Rectangle(P pMin, P pMax, int identifier)
         {
             this->min = pMin;
-			this->max = pMax;
+            this->max = pMax;
             this->identifier = identifier;
         }
     friend class RTree<T>;
