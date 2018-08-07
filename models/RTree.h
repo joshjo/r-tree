@@ -32,17 +32,21 @@ class RTree
     {
         do
         {
-            if(polygon->min.x < node->rectangle->min.x)
+            if (polygon->min.x < node->rectangle->min.x){
                 node->rectangle->min.x = polygon->min.x;
+            }
 
-            if(polygon->max.x > node->rectangle->max.x)
+            if (polygon->max.x > node->rectangle->max.x){
                 node->rectangle->max.x = polygon->max.x;
+            }
 
-            if(polygon->min.y < node->rectangle->min.y)
+            if (polygon->min.y < node->rectangle->min.y){
                 node->rectangle->min.y = polygon->min.y;
+            }
 
-            if(polygon->max.y > node->rectangle->max.y)
+            if (polygon->max.y > node->rectangle->max.y){
                 node->rectangle->max.y = polygon->max.y;
+            }
 
             node = node->father;
         }
@@ -53,17 +57,21 @@ class RTree
     {
         do
         {
-            if(nodeC->rectangle->min.x < nodeF->rectangle->min.x)
+            if(nodeC->rectangle->min.x < nodeF->rectangle->min.x){
                 nodeF->rectangle->min.x = nodeC->rectangle->min.x;
+            }
 
-            if(nodeC->rectangle->max.x > nodeF->rectangle->max.x)
+            if(nodeC->rectangle->max.x > nodeF->rectangle->max.x){
                 nodeF->rectangle->max.x = nodeC->rectangle->max.x;
+            }
 
-            if(nodeC->rectangle->min.y < nodeF->rectangle->min.y)
+            if(nodeC->rectangle->min.y < nodeF->rectangle->min.y){
                 nodeF->rectangle->min.y = nodeC->rectangle->min.y;
+            }
 
-            if(nodeC->rectangle->max.y > nodeF->rectangle->max.y)
+            if(nodeC->rectangle->max.y > nodeF->rectangle->max.y){
                 nodeF->rectangle->max.y = nodeC->rectangle->max.y;
+            }
 
             nodeF = nodeF->father;
         }
@@ -391,13 +399,13 @@ class RTree
         }
     }
 
-
     void insert(Polygon<T> *polygon)
     {
-
         if(firstTime)
         {
             root->polygons[root->count] = polygon->copy();
+            // root->polygons[root->count].print();
+            // cout << "firsTime" << endl;
             root->count++;
             firstTime = false;
             updateRectangle(root, polygon);

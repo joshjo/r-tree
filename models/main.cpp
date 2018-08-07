@@ -11,9 +11,27 @@ int main() {
     RTree<dtype> *tree = new RTree<dtype>(2,5);
     int count = 1;
 
-    Polygon<dtype> *poly = new Polygon<dtype>(*(new Point<dtype>(2,3)),count++);
-    Polygon<dtype> *poly2 = new Polygon<dtype>(*(new Point<dtype>(4,6)),count++);
-    tree->insert(poly);
+    vector<Point<dtype> > arr;
+    arr.push_back(*(new Point<dtype>(2, 3)));
+    arr.push_back(*(new Point<dtype>(4, 6)));
+    arr.push_back(*(new Point<dtype>(9, 6)));
+    arr.push_back(*(new Point<dtype>(9, 2)));
+    arr.push_back(*(new Point<dtype>(8, 3)));
+    arr.push_back(*(new Point<dtype>(15, 8)));
+
+    for (size_t i = 0; i < arr.size(); ++i) {
+        tree->insert(new Polygon<dtype>(arr[i], i + 1));
+    }
+
+    // Polygon<dtype> *poly = new Polygon<dtype>(
+    //     *(new Point<dtype>(2, 3)),count++);
+    // Polygon<dtype> *poly1 = new Polygon<dtype>(
+    //     *(new Point<dtype>(4, 6)), count++);
+    // Polygon<dtype> *poly2 = new Polygon<dtype>(
+    //     *(new Point<dtype>(9, 6)), count++);
+    // tree->insert(poly);
+    // tree->insert(poly1);
+    // tree->insert(poly2);
   /*
     Polygon<dtype> *poly2 = new Polygon<dtype>(3,4,count++);
     Polygon<dtype> *poly3 = new Polygon<dtype>(3,1,count++);

@@ -28,9 +28,9 @@ class Node
             this->father = 0;
             this->maxEntries = maxEntries;
             int inf = 1000000;
-            P max(inf,inf);
-            P min(-inf,-inf);
-            this->rectangle = new Rectangle<T>(min,max,identifier);
+            P min(inf,inf);
+            P max(-inf,-inf);
+            this->rectangle = new Rectangle<T>(min, max, identifier);
             this->children = new Node<T>[maxEntries];
             this->polygons = new Polygon<T>[maxEntries];
             this->leaf = true;
