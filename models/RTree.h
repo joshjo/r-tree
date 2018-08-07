@@ -6,6 +6,7 @@
 template <class T>
 class RTree
 {
+    typedef Point<T> P;
     private:
         Node<T> *root;
         int minEntries;
@@ -30,17 +31,17 @@ class RTree
     {
         do
         {
-            if(polygon->x < node->rectangle->minX)
-                node->rectangle->minX = polygon->x;
+            if(polygon->min.x < node->rectangle->min.x)
+                node->rectangle->min.x = polygon->min.x;
 
-            if(polygon->x > node->rectangle->maxX)
-                node->rectangle->maxX = polygon->x;
+            if(polygon->max.x > node->rectangle->max.x)
+                node->rectangle->max.x = polygon->max.x;
 
-            if(polygon->y < node->rectangle->minY)
-                node->rectangle->minY = polygon->y;
+            if(polygon->min.y < node->rectangle->min.y)
+                node->rectangle->min.y = polygon->min.y;
 
-            if(polygon->y > node->rectangle->maxY)
-                node->rectangle->maxY = polygon->y;
+            if(polygon->max.y > node->rectangle->max.y)
+                node->rectangle->max.y = polygon->max.y;
 
             node = node->father;
         }
@@ -51,17 +52,17 @@ class RTree
     {
         do
         {
-            if(nodeC->rectangle->minX < nodeF->rectangle->minX)
-                nodeF->rectangle->minX = nodeC->rectangle->minX;
+            if(nodeC->rectangle->min.x < nodeF->rectangle->min.x)
+                nodeF->rectangle->min.x = nodeC->rectangle->min.x;
 
             if(nodeC->rectangle->maxX > nodeF->rectangle->maxX)
-                nodeF->rectangle->maxX = nodeC->rectangle->maxX;
+                nodeF->rectangle->max.x = nodeC->rectangle->max.x;
 
-            if(nodeC->rectangle->minY < nodeF->rectangle->minY)
-                nodeF->rectangle->minY = nodeC->rectangle->minY;
+            if(nodeC->rectangle->min.y < nodeF->rectangle->min.y)
+                nodeF->rectangle->min.y = nodeC->rectangle->min.y;
 
-            if(nodeC->rectangle->maxY > nodeF->rectangle->maxY)
-                nodeF->rectangle->maxY = nodeC->rectangle->maxY;
+            if(nodeC->rectangle->max.y > nodeF->rectangle->max.y)
+                nodeF->rectangle->max.y = nodeC->rectangle->max.y;
 
             nodeF = nodeF->father;
         }
@@ -105,21 +106,22 @@ class RTree
         float maxDistance = -1000000;
         float distance;
 
-        float x1, x2;
-        float y1, y2;
+        P p1;
+        P p2;
         int pos1 = 0, pos2 = 0;
 
         for(int i=0; i<node->count; i++)
         {
-            x1 = node->polygons[i].x;
-            y1 = node->polygons[i].y;
+            //Todo: tranformation in polygon  
+            p1.x = node->polygons[i].points[0].x;
+            p1.y = node->polygons[i].points[0].y;
 
             for(int j=i+1; j< node->count; j++)
             {
-                x2 = node->polygons[j].x;
-                y2 = node->polygons[j].y;
+                p2.x = node->polygons[j].point[0].x;
+                p2.y = node->polygons[j].point[0].y;
 
-                distance = sqrt(pow((x1 - x2),2) +pow((y1 - y2),2));
+                distance = sqrt(pow((p1.x - p2.x),2) +pow((p1.y - p2.y),2));
 
                 if(distance > maxDistance)
                 {
@@ -195,7 +197,7 @@ class RTree
 
     float getDistance( Polygon<T> * p1, Polygon<T> *p2 )
     {
-        return sqrt( pow(p1->x-p2->x,2) + pow(p1->y-p2->y,2));
+        return sqrt( pow(p1->points[0].x-p2->points[0].x,2) + pow(p1->points[0].y-p2->points[0].y,2));
     }
 
     void addNewPolygonNearToNode(Node<T> *node, Polygon<T> *polygon, Node<T> *firstHalfNode, Node<T> *secondHalfNode)
@@ -394,7 +396,7 @@ class RTree
 
         if(firstTime)
         {
-            root->polygons[root->count] = Polygon<T>(polygon->x, polygon->y, polygon->identifier);
+            root->polygons[root->count] = polygon->copy();;
             root->count++;
             firstTime = false;
             updateRectangle(root, polygon);
@@ -457,8 +459,8 @@ class RTree
     void print(Node<T> *node)
     {
         cout<<"Identifier rectangle: R"<<node->rectangle->identifier;
-        cout<<" x:"<<node->rectangle->minX<<"-"<<node->rectangle->maxX;
-        cout<<" y:"<<node->rectangle->minY<<"-"<<node->rectangle->maxY<<endl;
+        cout<<" x:"<<node->rectangle->min.x<<"-"<<node->rectangle->max.x;
+        cout<<" y:"<<node->rectangle->min.y<<"-"<<node->rectangle->max.y<<endl;
         if(node->leaf)
         {
             for(int i=0; i<node->count; i++)

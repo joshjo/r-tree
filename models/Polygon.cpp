@@ -1,33 +1,43 @@
-#include "Point.cpp"
+#ifndef POLYGON_H
+#define POLYGON_H
 
-using namespace std;
+#include "includes.h"
+#include "Point.h"
 
-class Polygon{
-public:
-	Polygon();
-	Polygon(int, vector<Point>);
-	int getId();
-	void setId(int);
-	vector<Point> getVectorPoints();
-	void setVectorPoint(vector<Point>);
-private:
-	int id;
-	vector<Point> pv;
+template <class T>
+class RTree;
+template <class T>
+class Node;
+template <class T>
+class Point;
+template <class T>
+class Polygon
+{
+	typedef Point<T> P;
+    private:
+        vector<P> points;
+        bool intermediate;
+        T identifier;
+		P min;
+		P max;
+    public:
+        Polygon(){}
+        Polygon(vector<P> pPoints, T identifier, P pMin, P pMax)
+        {
+            this->points = pPoints;
+            this->intermediate = false;
+            this->identifier = identifier;
+			this->min = pMin;
+			this->max = pMax;
+        }
+        
+
+        Polygon<T> copy()
+        {
+            return Polygon(points, identifier,min,max);
+        }
+    friend class RTree<T>;
+    friend class Node<T>;
 };
-Polygon::Polygon(){}
-Polygon::Polygon(int pId, vector<Point> pVp){
-	this->id = pId;
-	this->pv = pVp;
-}
-int Polygon::getId(){
-	return this->id;
-}
-void Polygon::setId(int pId){
-	this->id = pId;
-}
-vector<Point> Polygon::getVectorPoints(){
-	return this->pv;
-}
-void Polygon::setVectorPoint(vector<Point> pVp){
-	this->pv = pVp;
-}
+
+#endif // POLYGON_H

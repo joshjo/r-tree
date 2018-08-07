@@ -1,4 +1,4 @@
-#include "Point.cpp"
+#include "Point.h"
 
 using namespace std;
 

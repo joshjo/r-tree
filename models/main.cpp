@@ -4,13 +4,18 @@
 
 using namespace std;
 
-int main() {
-    RTree<string> *tree = new RTree<string>(2,5);
+typedef int dtype;
 
-    Polygon<string> *poly = new Polygon<string>(2,3,"A");
-    Polygon<string> *poly1 = new Polygon<string>(2,6,"B");
-    Polygon<string> *poly2 = new Polygon<string>(3,4,"C");
-    Polygon<string> *poly3 = new Polygon<string>(3,1,"D");
+int main() {
+	
+    RTree<dtype> *tree = new RTree<dtype>(2,5);
+    int count = 1;
+    
+    Polygon<dtype> *poly = new Polygon<dtype>(*(new Point<dtype>(2,3)),count++);
+    Polygon<dtype> *poly2 = new Polygon<dtype>(*(new Point<dtype>(4,6)),count++);
+    tree->insert(poly);  
+  /*Polygon<dtype> *poly2 = new Polygon<dtype>(3,4,count++);
+    Polygon<dtype> *poly3 = new Polygon<dtype>(3,1,count++);
 
     tree->insert(poly);
     tree->insert(poly1);
@@ -49,5 +54,6 @@ int main() {
     tree->insert(poly17);
 
     tree->print();
+	 */
     return 0;
 }
