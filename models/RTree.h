@@ -479,6 +479,10 @@ class RTree
     }
 
     void get_all(vector<Node<T> *> & leafs, vector<Node<T> *> & notleafs) {
+        cout << "firstTime" << firstTime << endl;
+        if (firstTime) {
+            return;
+        }
         get_all(root, leafs, notleafs);
     }
 
@@ -486,9 +490,9 @@ class RTree
         vector<Node<T>* > L;
         vector<Node<T>* > NL;
 
-        string json_string = "{\"regions\": [";
+        string json_string = "{\"regions\": [ ";
 
-        get_all(root, L, NL);
+        get_all(L, NL);
 
         for (auto node : NL) {
             // for(auto y : x.getVectorPoints())

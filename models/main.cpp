@@ -22,9 +22,9 @@ int main() {
     arr.push_back(*(new Point<dtype>(8, 3)));
     arr.push_back(*(new Point<dtype>(15, 8)));
 
-    for (size_t i = 0; i < arr.size(); ++i) {
-        tree->insert(new Polygon<dtype>(arr[i], i + 1));
-    }
+    // for (size_t i = 0; i < arr.size(); ++i) {
+    //     tree->insert(new Polygon<dtype>(arr[i], i + 1));
+    // }
     // tree -> get_all(L, NL);
     cout << tree->get_json_string() << endl;
     // cout << "poygons size" << NL.size() << endl;
