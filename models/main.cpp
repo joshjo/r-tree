@@ -9,6 +9,9 @@ typedef int dtype;
 int main() {
 
     RTree<dtype> *tree = new RTree<dtype>(2,5);
+    vector<Node<dtype>* > L;
+    vector<Node<dtype>* > NL;
+
     int count = 1;
 
     vector<Point<dtype> > arr;
@@ -22,6 +25,24 @@ int main() {
     for (size_t i = 0; i < arr.size(); ++i) {
         tree->insert(new Polygon<dtype>(arr[i], i + 1));
     }
+    // tree -> get_all(L, NL);
+    cout << tree->get_json_string() << endl;
+    // cout << "poygons size" << NL.size() << endl;
+    // for (int i = 0; i < NL.size(); ++i) {
+    //     cout << "ID" << NL[i]->get_rectangle()->get_id() << endl;
+    //     // for (auto x: NL[i]->get_rectangle()->get_box()) {
+    //     //     x.print();
+    //     // }
+    //     // cout << endl;
+    //     // cout << "min: ";
+    //     // NL[i]->get_rectangle()->get_min().print();
+    //     // cout << endl << "max: ";
+    //     // NL[i]->get_rectangle()->get_max().print();
+    //     cout << endl << endl;
+    //     // cout <<  << endl;
+    // }
+    // cout << "Polygons length" << polygons.size() << endl;
+    // cout << "Regions length" << regions.size() << endl;
 
     // Polygon<dtype> *poly = new Polygon<dtype>(
     //     *(new Point<dtype>(2, 3)),count++);
@@ -77,7 +98,7 @@ int main() {
     Polygon<cid> *poly17 = new Polygon<cid>(15,11,lid++);
     tree->insert(poly17);
 
-	 */
     tree->print();
+	 */
     return 0;
 }

@@ -464,6 +464,47 @@ class RTree
     }
 
 
+    void get_all(Node<T> *node, vector<Node<T> *> & leafs, vector<Node<T> *> & notleafs) {
+        notleafs.push_back(node);
+        if (node -> leaf) {
+            leafs.push_back(node);
+        } else {
+            for (int i=0; i < node->count; i++)
+            {
+                get_all(&node->children[i], leafs, notleafs);
+            }
+
+        }
+        return;
+    }
+
+    void get_all(vector<Node<T> *> & leafs, vector<Node<T> *> & notleafs) {
+        get_all(root, leafs, notleafs);
+    }
+
+    string get_json_string() {
+        vector<Node<T>* > L;
+        vector<Node<T>* > NL;
+
+        string json_string = "{\"regions\": [";
+
+        get_all(root, L, NL);
+
+        for (auto node : NL) {
+            // for(auto y : x.getVectorPoints())
+            json_string += "{\"id\":" + std::to_string(node->rectangle->get_id()) + ",\"polygon\": [";
+
+            for (auto point: node->get_rectangle()->get_box()) {
+                json_string += point.to_string();
+            }
+            json_string.pop_back();
+            json_string += "]},";
+        }
+        json_string.pop_back();
+
+        json_string += "]}";
+        return json_string;
+    }
 
     void print(Node<T> *node)
     {
@@ -475,19 +516,20 @@ class RTree
             for(int i=0; i<node->count; i++)
             {
                 if(node->father != NULL)
-                    cout<<"Poly: "<<node->polygons[i].identifier<<" Father: R"<< node->father->rectangle->identifier <<endl;
+                    cout<< "Poly: "<<node->polygons[i].identifier<<" Father: R"<< node->father->rectangle->identifier <<endl;
                 else
-                    cout<<"Poly: "<<node->polygons[i].identifier <<endl;
+                    cout<< "Poly: "<<node->polygons[i].identifier <<endl;
             }
         }
         else
         {
-            for(int i=0; i<node->count; i++)
+            for(int i=0; i < node->count; i++)
             {
                 print(&node->children[i]);
             }
         }
     }
+
     void print()
     {
         print(root);

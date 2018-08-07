@@ -37,6 +37,14 @@ class Node
             this->intermediate = false;
         }
 
+        int size() {
+            return count;
+        }
+
+        Rectangle<T>* get_rectangle() {
+            return rectangle;
+        }
+
     bool isInsideRectangle(Polygon<T> *polygon)
     {
         return(rectangle->min.x <= polygon->points[0].x &&

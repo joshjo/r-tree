@@ -14,6 +14,12 @@ class Point{
             this->y = py;
         }
 
+        string to_string() {
+            string str;
+            str += "[" + std::to_string(x) + "," + std::to_string(y) + "],";
+            return str;
+        }
+
         void print() {
             cout << "(" << x << ", " << y << ")";
         }

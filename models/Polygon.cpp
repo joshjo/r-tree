@@ -13,13 +13,13 @@ class Point;
 template <class T>
 class Polygon
 {
-	typedef Point<T> P;
+    typedef Point<T> P;
     private:
         vector<P> points;
         bool intermediate;
         T identifier;
-		P min;
-		P max;
+        P min;
+        P max;
     public:
         Polygon(){}
         Polygon(vector<P> pPoints, T identifier, P pMin, P pMax)
@@ -27,10 +27,10 @@ class Polygon
             this->points = pPoints;
             this->intermediate = false;
             this->identifier = identifier;
-			this->min = pMin;
-			this->max = pMax;
+            this->min = pMin;
+            this->max = pMax;
         }
-        
+
 
         Polygon<T> copy()
         {
