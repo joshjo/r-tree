@@ -17,3 +17,5 @@ public:
     virtual DataType howMuchGrow(Rectangle *r) = 0;
     virtual void* search(Object *dat) = 0;
 };
+
+// :D
