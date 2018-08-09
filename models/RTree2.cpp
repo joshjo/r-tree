@@ -483,7 +483,6 @@ private:
     void add(Polygon &element);
     void add(Node    &element);
     void add(Node    *element);
-    void reset();
 
     void endsRectangles(Rectangle* rects,size_t &length, int &extreme1, int &extreme2);
     void endsRectangles(Polygon* poly,size_t &length, int &extreme1, int &extreme2);
@@ -583,24 +582,6 @@ void Node::add(Node *element){
 
     if( this->_size < this->_maxEntries )
         this->_MBR.join(element[0].getMBR());
-}
-
-
-/*
- * Reset
- * ------------
- * 
- * Eliminar elementos del nodo.
- * 
- */
-void Node::reset(){
-    this->_MBR = Rectangle(this->_dimension);
-    /*
-    delete _childPoly;
-    delete _childNode;
-    if(this->_isleaf) _childPoly = new Polygon[_maxEntries + 1];
-    else              _childNode = new Node   [_maxEntries + 1];        
-    */
 }
 
 
@@ -713,6 +694,10 @@ Node* Node::split(){
     int extreme1, extreme2;
     DataType growL1, growL2;
     
+    /*
+        Rutina para hojas
+        .................
+     */
     if(_isleaf){
         //
         // Salvar datos
@@ -766,6 +751,11 @@ Node* Node::split(){
         
         return ptrChildSplit;
     }
+
+    /*
+        Rutina para nodos no hojas
+        ..........................
+     */
     else{
         //
         // Salvar datos
@@ -843,7 +833,6 @@ DataType Node::howMuchGrow(Rectangle *r){
     Rectangle newR = this->_MBR.getJoin(r[0]);
     return newR.area() - r->area();
 }
-
 
 
 /*
@@ -940,37 +929,39 @@ public:
         _root = NULL;
     }
 
-    bool  insert(Polygon *dat);
-    void* search(Polygon *dat){
-        return (_root == NULL)? NULL : _root->search(dat);
-    }
-
+    bool  insert(Polygon &dat);
+    void* search(Polygon *dat):
 };
 
-bool RTree::insert(Polygon *dat){
-    /*
+
+/*
+ * Insert
+ * 
+ * Inserta un Polygon al Arbol
+ * 
+ */
+bool RTree::insert(Polygon &dat){
     // Si esta vacio
     if (_root == NULL){
-        _root = new Node(_minEntries,_maxEntries,_dimension);
+        _root = new Node(_minEntries,_maxEntries,_dimension,true,true);
     }
     // Si no esta vacio
     else{
-        // Aun no se llena la raiz
-        if(_root->isleaf()){
-            // Deberia funcionar con root lleno o semilleno o vacio
-            _root->insert(dat);
-        }
-        // 
-        else{
-            // Rutina normal 
-        }
+        _root->insert(dat);
     }
-    */
 }
 
 
-
-
+/*
+ * Search
+ * 
+ * Buscar un elemento en el Arbol. 
+ * Retorna un nodo en donde se encuentra o en donde se podría ubicar el elemento .
+ * 
+ */
+void* RTree::search(Polygon *dat){
+    return (_root == NULL)? NULL : _root->search(dat);
+}
 
 
 
