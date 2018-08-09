@@ -55,6 +55,9 @@ private:
     Interval *_Ik;
 
 public:
+/*
+ *  Constructors
+ */
     Rectangle():_dimension(0){}
     Rectangle(size_t dimension): _dimension(dimension){
         _Ik = new Interval [dimension];
@@ -70,21 +73,32 @@ public:
         _Ik[1] = y;
     }
 
+/*
+ *  Basic operations
+ */
     void set(Interval *Ik){ _Ik = Ik;}
     bool inRange(DataType *val);
     bool inRange(Point<DataType> p);
     void join(Rectangle *rect);
     DataType area();
 
+    bool isThereIntersectionWith(Rectangle &other);
+    
+    std::vector<P> getEnds();
+    void print(bool basic);
+
+/*
+ *  Get info
+ */
     Rectangle getJoin(Rectangle &rect);
     Rectangle getJoin(Rectangle *rect);
     size_t    getDimension(){return _dimension;}
     Interval* getIntervals(){return _Ik;}
     Interval* getIntervals(int dimension){return &_Ik[dimension];}
 
-    std::vector<P> getEnds();
-    void print(bool basic);
-
+/*
+ *  Operators
+ */
     bool operator==(const Rectangle& other){
         for(int i=0; i<this->_dimension; ++i){
             if( !(this->_Ik[i]==other._Ik[i])  ) return false;
@@ -92,6 +106,7 @@ public:
         }
         return true;
     }
+
 };
 
 
@@ -209,6 +224,20 @@ DataType Rectangle::area(){
 
 
 /*
+ * Is there an intersection with Rectangle?
+ * 
+ * Retorna verdadero si existe interseccion con el rectangulo
+ * 
+ */
+bool Rectangle::isThereIntersectionWith(Rectangle &other){
+    return this->inRange(Point<DataType>( _Ik[0].min,_Ik[1].min )) ||
+           this->inRange(Point<DataType>( _Ik[0].min,_Ik[1].max )) ||
+           this->inRange(Point<DataType>( _Ik[0].max,_Ik[1].min )) ||
+           this->inRange(Point<DataType>( _Ik[0].max,_Ik[1].max ));
+}
+
+
+/*
  * Get rectangle ends
  * 
  * Obtener extremos del rectangulo
@@ -262,7 +291,6 @@ public:
         printf("\n\n");
     }
     virtual void updateMBR() = 0;
-    //virtual bool iswithin(Object    &d) = 0;
     virtual bool iswithin(Rectangle *d) = 0;
     virtual DataType howMuchGrow(Rectangle *r) = 0;
     virtual void* search(Object *dat) = 0;
@@ -528,7 +556,9 @@ public:
     void* search(Polygon *dat);
     Node* insert(Polygon &dat);
     Node* split();
-    
+    void range(Rectangle &region, std::vector<Polygon> &elements);
+    bool isThereIntersectionWith(Rectangle &other);
+
 /*
  *  Bool states
  */
@@ -813,6 +843,48 @@ Node* Node::split(){
 
 
 /*
+ * Range
+ * 
+ * Consulta por los elementos incluidos dentro de un Rectangulo.
+ * 
+ */
+void Node::range(Rectangle &region, std::vector<Polygon> &elements){
+    // En una hoja
+    // Verfica que el elemento esté contenida en la region
+    if(_isleaf){
+
+        for(int i=0; i<_size; ++i){
+            if( this->_childPoly[i].iswithin(region) )
+                elements.push_back(this->_childPoly[i]);
+        }
+
+    }
+    
+    // Es un nodo no hoja
+    // Verifica interesecciones con la region
+    else{
+
+        for(int i=0; i<_size; ++i){
+            if( this->_childNode[i].isThereIntersectionWith(region) )
+                this->_childNode[i].range(region, elements);
+        }
+
+    }
+    
+}
+
+/*
+ * Is there an intersection with Rectangle?
+ * 
+ * Retorna verdadero si existe interseccion entre MBR y el rectangulo
+ * 
+ */
+bool Node::isThereIntersectionWith(Rectangle &other){
+    return this->_MBR.isThereIntersectionWith(other);
+}
+
+
+/*
  * Get points (Get MBR ends)
  * 
  * Retorna los extremos del MBR
@@ -930,7 +1002,8 @@ public:
     }
 
     bool  insert(Polygon &dat);
-    void* search(Polygon *dat):
+    void* search(Polygon &dat):
+    std::vector<Polygon> range(Rectangle &region);
 };
 
 
@@ -964,6 +1037,18 @@ void* RTree::search(Polygon *dat){
 }
 
 
+/*
+ * Range
+ * 
+ * Consulta por los elementos incluidos dentro de un Rectangulo.
+ * 
+ */
+std::vector<Polygon> RTree::range(Rectangle &region){
+    std::vector<Polygon> elements;
+    if(_root != NULL) this->_root->range(region,elements);
+    return elements;
+}
+
 
 
 
@@ -985,5 +1070,3 @@ int main(int argc, char const *argv[]) {
 
     return 0;
 }
-
-// D:
