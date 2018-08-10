@@ -40,8 +40,6 @@ struct Interval{
 };
 
 
-
-
 /*
  * Class Rectangle
  * ...........................................................................
@@ -309,7 +307,7 @@ private:
     std::vector< Point<DataType> > _data;
     
 public:
-    Polygon();
+    Polygon(){}
     Polygon(std::vector< P > &data){ 
         _data = data;
         this->updateMBR();
@@ -318,6 +316,7 @@ public:
     void updateMBR();
     bool iswithin(Polygon   &d);
     bool iswithin(Rectangle *d);
+    bool iswithin(Rectangle &d);
     DataType howMuchGrow(Rectangle *r);
     void* search(Object *dat);
 
@@ -374,6 +373,12 @@ bool Polygon::iswithin(Rectangle *d){
     }
     return true;
 }
+bool Polygon::iswithin(Rectangle &d){
+    for (int i=0; i<this->_data.size(); ++i){
+        if(  d.inRange( this->_data[i] )  ) return false;
+    }
+    return true;
+}
 
 
 /*
@@ -419,6 +424,7 @@ std::vector<P> Polygon::get_points(){
  * Class Point RG
  * ...........................................................................
  */
+/*
 class PointRG: public Object
 {
 private:
@@ -442,6 +448,7 @@ public:
  * Define MBR. Los cuatros puntos son iguales al dato
  * 
  */
+/*
 void PointRG::updateMBR(){
     this->_MBR = Rectangle( Interval(_data.x,_data.x), 
                             Interval(_data.y,_data.y) );
@@ -454,6 +461,7 @@ void PointRG::updateMBR(){
  * Retorna verdadero si el punto está dentro del objeto. 
  * 
  */
+/*
 bool PointRG::iswithin(Polygon &d){
     Rectangle *objMBR = d.getMBR();
     return objMBR->inRange( _data );
@@ -466,6 +474,7 @@ bool PointRG::iswithin(Polygon &d){
  * Retorna verdadero si el punto está dentro del rectangulo. 
  * 
  */
+/*
 bool PointRG::iswithin(Rectangle *d){
     return d->inRange( _data );
 }
@@ -477,6 +486,7 @@ bool PointRG::iswithin(Rectangle *d){
  * Retorna el aumento de area del rectangulo si se añade el punto.
  * 
  */
+/*
 DataType PointRG::howMuchGrow(Rectangle *r){
     Rectangle newR = this->_MBR.getJoin(r[0]);
     return newR.area() - r->area();
@@ -865,7 +875,7 @@ void Node::range(Rectangle &region, std::vector<Polygon> &elements){
     if(_isleaf){
 
         for(int i=0; i<_size; ++i){
-            if( this->_childPoly[i].iswithin(region) )
+            if( this->_childPoly[i].iswithin( region ) )
                 elements.push_back(this->_childPoly[i]);
         }
 
@@ -1037,11 +1047,12 @@ public:
  *  Basic operations
  */
     bool  insert(Polygon &dat);
-    void* search(Polygon &dat):
+    //void* search(Polygon &dat):
 
 /*
  *  Query operations
  */
+
     std::vector<Polygon> range(Rectangle &region);
     std::vector<Polygon> nearest(Polygon &element, unsigned int k);
 };
@@ -1072,10 +1083,11 @@ bool RTree::insert(Polygon &dat){
  * Retorna un nodo en donde se encuentra o en donde se podría ubicar el elemento .
  * 
  */
+/*
 void* RTree::search(Polygon *dat){
     return (_root == NULL)? NULL : _root->search(dat);
 }
-
+*/
 
 /*
  * Range
@@ -1083,6 +1095,7 @@ void* RTree::search(Polygon *dat){
  * Consulta por los elementos incluidos dentro de un Rectangulo.
  * 
  */
+
 std::vector<Polygon> RTree::range(Rectangle &region){
     std::vector<Polygon> elements;
     if(_root != NULL) this->_root->range(region,elements);
@@ -1096,14 +1109,13 @@ std::vector<Polygon> RTree::range(Rectangle &region){
  * Busca los k vecinos más cercanos de un elemento.
  * 
  */
+/*
 std::vector<Polygon> RTree::nearest(Polygon &element, unsigned int k){
     std::vector<Polygon> kElements;
     if(_root != NULL) this->_root->nearest(element,k,kElements);
     return kElements;
 }
-
-
-
+*/
 
 
 
@@ -1113,8 +1125,29 @@ std::vector<Polygon> RTree::nearest(Polygon &element, unsigned int k){
 
 
 int main(int argc, char const *argv[]) {
+    RTree a(2,5,2);
+    
+    P(535,324);
+    P(535,324);
+    P(535,324);
+    P(535,324);
 
-    //Node<Object> a(2,5,2);
+/*
+[535,324],
+[89,524],
+[1108,283],
+[1003,96],
+[288,89],
+[364,786],
+[1172,575],
+[1377,166],
+[1172,63],
+[661,504],
+[260,323],
+[69,216],
+[452,633],
+[800,183],
+*/
 
     std::cout << ":c" << std::endl;
 
