@@ -1,32 +1,27 @@
 #ifndef Point_cpp
 #define Point_cpp
+
+#include "includes.h"
+
+template <class T>
 class Point{
-private:
-	int x;
-	int y;
-public:
-	Point();
-	Point(int,int);
-	int getX();
-	void setX(int);
-	int getY();
-	void setY(int);
+    public:
+        T x;
+        T y;
+        Point(){}
+        Point(T px,T py){
+            this->x = px;
+            this->y = py;
+        }
+
+        string to_string() {
+            string str;
+            str += "[" + std::to_string(x) + "," + std::to_string(y) + "],";
+            return str;
+        }
+
+        void print() {
+            cout << "(" << x << ", " << y << ")";
+        }
 };
-Point::Point(){}
-Point::Point(int px,int py){
-	this->x = px;
-	this->y = py;
-}
-int Point::getX(){
-	return this->x;
-}
-void Point::setX(int pX){
-	this->x = pX;
-}
-int Point::getY(){
-	return this->y;
-}
-void Point::setY(int pY){
-	this->y = pY;
-}
-#endif 
+#endif

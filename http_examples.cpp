@@ -5,8 +5,9 @@
 #include <string>
 #include <utility>
 //Models for rtree
-#include "models/Polygon.cpp"
-#include "models/Region.cpp"
+// #include "models/Polygon.cpp"
+// #include "models/Region.cpp"
+#include "models/RTree.h"
 // Added for the json-example
 #define BOOST_SPIRIT_THREADSAFE
 #include <boost/property_tree/json_parser.hpp>
@@ -26,8 +27,12 @@ using namespace std;
 // Added for the json-example:
 using namespace boost::property_tree;
 
+typedef int dtype;
+typedef Point<dtype> P;
+
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 using HttpClient = SimpleWeb::Client<SimpleWeb::HTTP>;
+
 
 int main() {
     // HTTP-server at port 8080 using 1 thread
@@ -35,45 +40,33 @@ int main() {
     // 1 thread is usually faster than several threads
     HttpServer server;
     server.config.port = 8090;
-	vector<Polygon> polygonVector;
-	vector<Region> regionVector;
-	vector<Point> rp;
-	int count=1;
-	//Get rtree
-    server.resource["^/rtree$"]["GET"] = [&polygonVector,&regionVector](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
+    // vector<Polygon> polygonVector;
+    // vector<Region> regionVector;
+    RTree<dtype> * tree = new RTree<dtype>(2,5);
+
+    // vector<Point> rp;
+    int count = 1;
+    //Get rtree
+    server.resource["^/rtree$"]["GET"] = [&tree](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         stringstream stream;
         SimpleWeb::CaseInsensitiveMultimap header;
-        string json_string = "['polygon':[";
-		for(auto x : polygonVector)
-		{
-			json_string += "['id':" + std::to_string(x.getId()) + ", 'Point':[";
-			for(auto y : x.getVectorPoints())
-				json_string += "[" + std::to_string(y.getX()) + "," + std::to_string(y.getY()) + "],";
-			json_string.pop_back();
-			json_string += "]],";
-		}             
-		json_string.pop_back();
-		json_string += "] 'regions':[";
-		for(auto r : regionVector)
-		{
-			json_string += "'id':" + std::to_string(r.getId()) + ", 'min':" + std::to_string(r.getMin().getX()) + ", 'max':" + std::to_string(r.getMax().getY());
-		}
-		json_string += "]]";
-        stream << json_string;
-		response->write_get(stream,header);
+        // string json_string = "{\"polygon\": [";
+
+        stream << tree->get_json_string();
+        response->write_get(stream,header);
     };
-	
+
     //Post rtree
-    server.resource["^/rtree$"]["POST"] = [&polygonVector,&count](
+    server.resource["^/rtree$"]["POST"] = [&tree, &count](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
-		Polygon polygon;
-		vector<Point> pv;
-		vector<int> v;
+        // Polygon polygon;
+        vector<P > pv;
+        vector<dtype> v;
         stringstream stream;
         string json_string = "";
-		SimpleWeb::CaseInsensitiveMultimap header;
+        SimpleWeb::CaseInsensitiveMultimap header;
         try {
             ptree pt;
             read_json(request->content, pt);
@@ -84,15 +77,16 @@ int main() {
                 }
             }
             for (size_t i = 0; i < v.size(); i += 2) {
-				cout << v[i] << ", " << v[i+1] << endl;
-				Point point = Point(v[i],v[i+1]);
-				pv.push_back(point);
+                // cout << v[i] << ", " << v[i+1] << endl;
+                P point(v[i], v[i+1]);
+                pv.push_back(point);
             }
-			polygon = Polygon(count,pv); 
-			polygonVector.push_back(polygon);
-			count++;
-			json_string = "['status': true]";
-			stream << json_string;
+
+            cout << pv[0].to_string() << endl;
+            tree->insert(new Polygon<dtype>(pv[0], count++));
+            // tree->print();
+            json_string = "{\"status\": true}";
+            stream << json_string;
             response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
@@ -101,18 +95,18 @@ int main() {
             );
         }
     };
-	
-	//Option rtree
-	server.resource["^/rtree$"]["OPTIONS"] = [](
+
+    //Option rtree
+    server.resource["^/rtree$"]["OPTIONS"] = [](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
         stringstream stream;
         string json_string = "";
-		SimpleWeb::CaseInsensitiveMultimap header;
+        SimpleWeb::CaseInsensitiveMultimap header;
         try {
             json_string = "['status': true]";
-			stream << json_string;
+            stream << json_string;
             response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
@@ -121,23 +115,23 @@ int main() {
             );
         }
     };
-	
-	//Post search/nearest
-	server.resource["^/search/nearest$"]["POST"] = [&polygonVector](
+
+    //Post search/nearest
+    server.resource["^/search/nearest$"]["POST"] = [&tree](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
         stringstream stream;
         string json_string = "{}";
         stream << json_string;
-		SimpleWeb::CaseInsensitiveMultimap header;
+        SimpleWeb::CaseInsensitiveMultimap header;
         try {
             ptree pt;
-			read_json(request->content, pt);
+            read_json(request->content, pt);
             int id = pt.get_child("id").get_value<int>();
-			int k = pt.get_child("k").get_value<int>();
-			cout << id << " " << k << endl;
-			//use polygonVector for search
+            int k = pt.get_child("k").get_value<int>();
+            cout << id << " " << k << endl;
+            //use polygonVector for search
             response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
@@ -146,18 +140,18 @@ int main() {
             );
         }
     };
-	
-	//Options search/nearest
-	server.resource["^/search/nearest$"]["OPTIONS"] = [](
+
+    //Options search/nearest
+    server.resource["^/search/nearest$"]["OPTIONS"] = [](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
         stringstream stream;
         string json_string = "{}";
-		SimpleWeb::CaseInsensitiveMultimap header;
+        SimpleWeb::CaseInsensitiveMultimap header;
         try {
             json_string = "['status': true]";
-			stream << json_string;
+            stream << json_string;
             response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
@@ -166,23 +160,23 @@ int main() {
             );
         }
     };
-	
-	//Post search/range
-	server.resource["^/search/range$"]["POST"] = [&polygonVector](
+
+    //Post search/range
+    server.resource["^/search/range$"]["POST"] = [&tree](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
         stringstream stream;
         string json_string = "{}";
         stream << json_string;
-		SimpleWeb::CaseInsensitiveMultimap header;
+        SimpleWeb::CaseInsensitiveMultimap header;
         try {
             ptree pt;
-			read_json(request->content, pt);
+            read_json(request->content, pt);
             int min = pt.get_child("min").get_value<int>();
-			int max = pt.get_child("max").get_value<int>();
-			cout << min << " " << max << endl;
-			//use polygonVector for search
+            int max = pt.get_child("max").get_value<int>();
+            cout << min << " " << max << endl;
+            //use polygonVector for search
             response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
@@ -191,18 +185,18 @@ int main() {
             );
         }
     };
-	
-	//options search/range
-	server.resource["^/search/range$"]["OPTIONS"] = [](
+
+    //options search/range
+    server.resource["^/search/range$"]["OPTIONS"] = [](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
         stringstream stream;
         string json_string = "{}";
-		SimpleWeb::CaseInsensitiveMultimap header;
+        SimpleWeb::CaseInsensitiveMultimap header;
         try {
-			json_string = "['status': true]";
-			stream << json_string;            
+            json_string = "['status': true]";
+            stream << json_string;
             response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
@@ -211,23 +205,23 @@ int main() {
             );
         }
     };
-	
+
     //Delete rtree
-	server.resource["^/rtree$"]["DELETE"] = [&polygonVector](
+    server.resource["^/rtree$"]["DELETE"] = [&tree](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
-		stringstream stream;
+        stringstream stream;
         string json_string = "{}";
-		SimpleWeb::CaseInsensitiveMultimap header;
+        SimpleWeb::CaseInsensitiveMultimap header;
         try {
             ptree pt;
-			read_json(request->content, pt);
+            read_json(request->content, pt);
             int id = pt.get_child("id").get_value<int>();
-			cout << id << endl;
-			//use PolygonVector for delete pg
-			json_string = "['status': true]";
-			stream << json_string;            
+            cout << id << endl;
+            //use PolygonVector for delete pg
+            json_string = "['status': true]";
+            stream << json_string;
             response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
@@ -235,20 +229,20 @@ int main() {
                 e.what()
             );
         }
-	};
-	
-	//delete/reset rtree
-	server.resource["^/rtree/reset$"]["DELETE"] = [&polygonVector](
+    };
+
+    //delete/reset rtree
+    server.resource["^/rtree/reset$"]["DELETE"] = [&tree](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
-		stringstream stream;
+        stringstream stream;
         string json_string = "{}";
-		SimpleWeb::CaseInsensitiveMultimap header;
+        SimpleWeb::CaseInsensitiveMultimap header;
         try {
-			polygonVector.clear();
-			json_string = "['status': true]";
-			stream << json_string;            
+            // polygonVector.clear();
+            json_string = "['status': true]";
+            stream << json_string;
             response->write_get(stream,header);
             response->write_get(stream,header);
         } catch (const exception &e) {
@@ -257,8 +251,8 @@ int main() {
                 e.what()
             );
         }
-	};
-	
+    };
+
     // Default GET-example. If no other matches, this anonymous function will be called.
     // Will respond with content in the web/-directory, and its subdirectories.
     // Default file: index.html
