@@ -81,8 +81,10 @@ int main() {
                 P point(v[i], v[i+1]);
                 pv.push_back(point);
             }
+
+            cout << pv[0].to_string() << endl;
             tree->insert(new Polygon<dtype>(pv[0], count++));
-            tree->print();
+            // tree->print();
             json_string = "{\"status\": true}";
             stream << json_string;
             response->write_get(stream,header);

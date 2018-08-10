@@ -126,6 +126,35 @@ class Node
         return area;
     }
 
+    float getSimulatedArea(Node<T> * node)
+    {
+        float minX = rectangle->min.x;
+        float maxX = rectangle->max.x;
+        float minY = rectangle->min.y;
+        float maxY = rectangle->max.y;
+
+        if(node->rectangle->min.x < rectangle->min.x)
+            rectangle->min.x = node->rectangle->min.x;
+
+        if(node->rectangle->max.x > rectangle->max.x)
+            rectangle->max.x = node->rectangle->max.x;
+
+        if(node->rectangle->min.y < rectangle->min.y)
+            rectangle->min.y = node->rectangle->min.y;
+
+        if(node->rectangle->max.y > rectangle->max.y)
+            rectangle->max.y = node->rectangle->max.y;
+
+        float area = getArea();
+
+        rectangle->min.x = minX;
+        rectangle->max.x = maxX;
+        rectangle->min.y = minY;
+        rectangle->max.y = maxY;
+
+        return area;
+    }
+
     friend class RTree<T>;
 };
 

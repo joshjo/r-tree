@@ -28,10 +28,10 @@ int main() {
         tree->insert(p);
     }
     cout << tree->get_json_string() << endl;
-    // tree->print();
+    tree->print();
     // cout << " ======= " << endl;
-    Point<dtype> searchPoint(9, 8);
-    tree->nearestSearch(searchPoint, 0);
+    // Point<dtype> searchPoint(9, 8);
+    // tree->nearestSearch(searchPoint, 0);
 
     return 0;
 }
