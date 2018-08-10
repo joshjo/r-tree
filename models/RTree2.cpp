@@ -557,6 +557,7 @@ public:
     Node* insert(Polygon &dat);
     Node* split();
     void range(Rectangle &region, std::vector<Polygon> &elements);
+    void nearest(Polygon &element, unsigned int k, std::vector<Polygon> &kElements);
     bool isThereIntersectionWith(Rectangle &other);
 
 /*
@@ -575,6 +576,16 @@ public:
     std::vector<P> get_points();
 
     DataType howMuchGrow(Rectangle *r);
+
+/*
+ *  Operators
+ */
+    bool operator==(const Node& other){
+        return ( this->_MBR == other._MBR );
+    }
+    bool operator!=(const Node& other){
+        return !( this->_MBR == other._MBR );
+    }
 };
 
 
@@ -873,6 +884,27 @@ void Node::range(Rectangle &region, std::vector<Polygon> &elements){
     
 }
 
+
+/*
+ * Nearest
+ * 
+ * Busca los k vecinos más cercanos de un elemento.
+ * 
+ */
+void Node::nearest(Polygon &element, unsigned int k, std::vector<Polygon> &kElements){
+    // En una hoja
+    // Solo añade elementos al vector si no se ha completado los k-elementos
+    if(_isleaf){
+        
+    }
+    
+    // Es un nodo no hoja
+    else{
+        
+    }
+}
+
+
 /*
  * Is there an intersection with Rectangle?
  * 
@@ -1001,9 +1033,17 @@ public:
         _root = NULL;
     }
 
+/*
+ *  Basic operations
+ */
     bool  insert(Polygon &dat);
     void* search(Polygon &dat):
+
+/*
+ *  Query operations
+ */
     std::vector<Polygon> range(Rectangle &region);
+    std::vector<Polygon> nearest(Polygon &element, unsigned int k);
 };
 
 
@@ -1050,7 +1090,17 @@ std::vector<Polygon> RTree::range(Rectangle &region){
 }
 
 
-
+/*
+ * Nearest
+ * 
+ * Busca los k vecinos más cercanos de un elemento.
+ * 
+ */
+std::vector<Polygon> RTree::nearest(Polygon &element, unsigned int k){
+    std::vector<Polygon> kElements;
+    if(_root != NULL) this->_root->nearest(element,k,kElements);
+    return kElements;
+}
 
 
 
