@@ -46,12 +46,13 @@ class Polygon
                 points[i].print();
                 cout << " - ";
             }
-            cout << endl << "min: ";
-            min.print();
-            cout << endl << "max: ";
-            max.print();
+            // cout << endl << "min: ";
+            // min.print();
+            // cout << endl << "max: ";
+            // max.print();
             cout << endl;
         }
+
         Polygon<T> copy()
         {
             return *(new Polygon(points, identifier, min, max));
@@ -59,6 +60,35 @@ class Polygon
         vector<P> get_points(){
             return points;
         }
+
+        T minDist(P & p) {
+            // This functions is repeated in the node.
+            T sx, sy, tx, ty, rx, ry;
+
+            rx = p.x;
+            ry = p.y;
+
+            sx = min.x;
+            sy = min.y;
+
+            tx = max.x;
+            ty = max.y;
+
+            if (p.x < sx) {
+                rx = sx;
+            } else if (p.x > tx) {
+                rx = tx;
+            }
+
+            if (p.y < sy) {
+                ry = sy;
+            } else if (p.y > ty) {
+                ry = ty;
+            }
+
+            return pow(abs(p.x - rx), 2) + pow(abs(p.y - ry), 2);
+        }
+
     friend class RTree<T>;
     friend class Node<T>;
 };

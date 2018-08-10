@@ -37,14 +37,50 @@ class Node
             this->intermediate = false;
         }
 
+        vector<Node<T>* > getChildrenVector() {
+            vector<Node<T>* > array;
+            for (size_t i = 0; i < count; i += 1) {
+                array.push_back(&children[i]);
+            }
+            return array;
+        }
+
+        T minDist(P & p) {
+            // Calculates the mindist from the rectangle to a point
+            T sx, sy, tx, ty, rx, ry;
+
+            rx = p.x;
+            ry = p.y;
+
+            sx = rectangle->min.x;
+            sy = rectangle->min.y;
+
+            tx = rectangle->max.x;
+            ty = rectangle->max.y;
+
+            if (p.x < sx) {
+                rx = sx;
+            } else if (p.x > tx) {
+                rx = tx;
+            }
+
+            if (p.y < sy) {
+                ry = sy;
+            } else if (p.y > ty) {
+                ry = ty;
+            }
+
+            return pow(abs(p.x - rx), 2) + pow(abs(p.y - ry), 2);
+        }
+
         int size() {
             return count;
         }
-        
-        Polygon<T>* get_polygon() {
+
+        Polygon<T>* get_polygons() {
             return polygons;
         }
-        
+
         Rectangle<T>* get_rectangle() {
             return rectangle;
         }

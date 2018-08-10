@@ -7,6 +7,27 @@ template <class T>
 class RTree
 {
     typedef Point<T> P;
+
+    struct PointNodeDistComparison {
+        PointNodeDistComparison(P point) {
+            this->point = point;
+        }
+        bool operator() (Node<T> * i, Node<T> * j) {
+            return i->minDist(point) < j->minDist(point);
+        }
+        P point;
+    };
+
+    struct PointPolygonDistComparison {
+        PointPolygonDistComparison(P point) {
+            this->point = point;
+        }
+        bool operator() (Polygon<T> * i, Polygon<T> * j) {
+            return i->minDist(point) < j->minDist(point);
+        }
+        P point;
+    };
+
     private:
         Node<T> *root;
         int minEntries; // m
@@ -463,7 +484,6 @@ class RTree
 
     }
 
-
     void get_all(Node<T> *node, vector<Node<T> *> & leafs, vector<Node<T> *> & notleafs) {
         notleafs.push_back(node);
         if (node -> leaf) {
@@ -486,24 +506,88 @@ class RTree
         get_all(root, leafs, notleafs);
     }
 
+
+    vector <Polygon<T> * > nearestSearch(P point, size_t k) {
+        vector <Node<T> * > missingVisits = root->getChildrenVector();
+        vector <Polygon<T> * > knearest;
+
+        sort(
+            missingVisits.begin(),
+            missingVisits.end(),
+            PointNodeDistComparison(point)
+        );
+        while (missingVisits.size() && k > 0) {
+            Node <T> * current = missingVisits[0];
+            missingVisits.erase(
+                missingVisits.begin(), missingVisits.begin() + 1);
+            size_t ksize = knearest.size();
+            if (knearest.size() == k && (knearest[ksize - 1])->minDist(point) < current->minDist(point)) {
+                break;
+            }
+            if (current->leaf) {
+                for(int i = 0; i < current->count; i += 1) {
+                    Polygon<T> * polygon = &(current->polygons[i]);
+                    int poly_dist = polygon->minDist(point);
+                    if (ksize < k) {
+                        knearest.push_back(polygon);
+                        ksize = knearest.size();
+                    }
+                    else if (poly_dist < (knearest[ksize - 1])->minDist(point)) {
+                        knearest[ksize - 1] = polygon;
+                    }
+                    sort(
+                        knearest.begin(),
+                        knearest.end(),
+                        PointPolygonDistComparison(point)
+                    );
+                }
+            } else {
+                cout << "Not LEAFS" << endl;
+                vector <Node<T> * > currentChildren = current->getChildrenVector();
+                missingVisits.insert(
+                    missingVisits.begin(),
+                    currentChildren.begin(),
+                    currentChildren.end()
+                );
+                sort(
+                    missingVisits.begin(),
+                    missingVisits.end(),
+                    PointNodeDistComparison(point)
+                );
+            }
+            cout << "Current knearest" << endl;
+            for (int i = 0; i < knearest.size(); i += 1) {
+                knearest[i]->print();
+            }
+        }
+        return knearest;
+    }
+
     string get_json_string() {
         vector<Node<T>* > L;
         vector<Node<T>* > NL;
 
+        get_all(L, NL);
+
         string json_string = "{\"polygon\": [ ";
+
         for(auto node : L){
             json_string += "{\"id\":" + std::to_string(node->polygons->get_id()) + ",\"polygon\": [";
-
-            for (auto point : node->get_polygon()->get_points()) {
-                json_string += point.to_string();
+            for (size_t i = 0; i < node->count; i += 1) {
+                for (auto point : node->get_polygons()[i].get_points()) {
+                    json_string += point.to_string();
+                }
             }
+            // for (auto point : node->get_polygons()->get_points()) {
+            //     json_string += point.to_string();
+            // }
             json_string.pop_back();
             json_string += "]},";
         }
-        
-        json_string += "{\"regions\": [ ";
 
-        get_all(L, NL);
+        json_string.pop_back();
+
+        json_string += "], \"regions\": [ ";
 
         for (auto node : NL) {
             json_string += "{\"id\":" + std::to_string(node->rectangle->get_id()) + ",\"polygon\": [";
@@ -515,7 +599,6 @@ class RTree
             json_string += "]},";
         }
         json_string.pop_back();
-
         json_string += "]}";
         return json_string;
     }
