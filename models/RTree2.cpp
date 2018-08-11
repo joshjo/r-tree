@@ -26,11 +26,11 @@ struct Interval{
     bool inRange(DataType &val){return ( min<val && val<max );}  
     void join(Interval &Ik){
         min = (Ik.min<min) ? Ik.min : min;
-        max = (Ik.max>min) ? Ik.max : max;
+        max = (Ik.max>max) ? Ik.max : max;
     }
     Interval getJoin(Interval &Ik){
         DataType newmin = (Ik.min<min) ? Ik.min : min;
-        DataType newmax = (Ik.max>min) ? Ik.max : max;
+        DataType newmax = (Ik.max>max) ? Ik.max : max;
         return Interval(newmin,newmax);
     }
     DataType length(){return max-min;}
@@ -212,9 +212,12 @@ Rectangle Rectangle::getJoin(Rectangle *rect){
  */
 DataType Rectangle::area(){
     if (_dimension == 2){
-        return this->_Ik[0].length() * this->_Ik[1].length();
+        cout << "Ik= x: " << ( this->_Ik[0].length() + 1) << ". ";
+        cout << "y: " << ( this->_Ik[1].length() + 1) << ". " << endl;
+        return ( this->_Ik[0].length() + 1)*(this->_Ik[1].length() + 1);
     }
     else if(_dimension == 0){
+        cout << "Aqui no deberia estar" << endl;
         return 0;
     }
     else{
@@ -290,6 +293,7 @@ protected:
     std::string _identifier;
 public:
     Rectangle* getMBR(){return &this->_MBR;};
+    std::string getId(){return this->_identifier;}
     void printMBR(){
         printf("Object %s:\n.......................\n",_identifier.c_str());
         printf("MBR:\t");
@@ -611,12 +615,13 @@ public:
         if(_isleaf){
             cout << "Node leaf: ";
             _MBR.print(true);
-            cout << ". Count: " << this->_size << endl;
+            cout << "\t";
+            this->printId();
         }
         else{
             cout << "Node: ";
             _MBR.print(true);
-            cout << ". Count: " << this->_size << endl;
+            cout << ".\tCount: " << this->_size << endl;
 
             int plusLevel = level + 1;
             for(int i=0;i<this->_size;++i) {
@@ -624,6 +629,19 @@ public:
             }
         }
     }
+
+    void printId(){
+        if(_isleaf){
+            cout << "{";
+            for(int i=0;i<_size-1;++i) {
+                std::string id = this->_childPoly[i].getId();
+                cout << id << ", ";
+            }
+            std::string id = this->_childPoly[_size-1].getId();
+            cout << id << "}" << endl;
+        }
+    }
+
 
 /*
  *  Operators
@@ -677,7 +695,7 @@ void Node::add(Node *element){
     this->_childNode[ this->_size ] = element[0];
     ++this->_size;
 
-    if(_size == 1){
+    if(_size < 2){
         Rectangle *elementMBR = element[0].getMBR();
         this->_MBR = elementMBR[0];
     }
@@ -810,6 +828,9 @@ Node* Node::split(){
         std::copy(_childPoly,_childPoly+_size,childSaved);
         size_t length = _size;
 
+        cout << "Nodo antes Split: ";
+        this->printId();
+        
         // Sin datos
         this->_size = 0;
         
@@ -821,36 +842,46 @@ Node* Node::split(){
         //
         // Salvar datos
         // ---------------------------
-        //this->_MBR = Rectangle(_dimension);
         Node childSplit = Node(_minEntries,_maxEntries,_dimension,_isleaf,_isroot);
         this     ->add(childSaved[extreme1]);   // L1
         childSplit.add(childSaved[extreme2]);   // L2
-
+        
         for(int i=0; i<length; ++i){
             if(i!=extreme1 && i!=extreme2 ){
                 // PASO 0: Si algun nodo se queda vacio
-                if( this     ->_size     == _maxEntries-_minEntries+1 )
+                if( this     ->_size     == _maxEntries-_minEntries + 1 ){
                     childSplit.add(childSaved[i]);
-                if( childSplit.getSize() == _maxEntries-_minEntries+1 )
+                    break;
+                }
+                if( childSplit.getSize() == _maxEntries-_minEntries + 1 ){
                     this     ->add(childSaved[i]);
+                    break;
+                }
                 
                 // PASO 1: Menor crecimiento de nodos
                 growL1 = childSaved[i].howMuchGrow( this     ->getMBR()  );
                 growL2 = childSaved[i].howMuchGrow( childSplit.getMBR()  );
-
+                
                 if      (growL1<growL2) this     ->add(childSaved[i]);
                 else if (growL1>growL2) childSplit.add(childSaved[i]);
                 
                 // PASO 2: Menor cantidad de elementos
                 else{
-                    if( _size < childSplit.getSize() )
+                    if( this->_size < childSplit.getSize() )
                         this     ->add(childSaved[i]);
                     else
                         childSplit.add(childSaved[i]);
                 }
             }
         }
+        cout << endl;
+        cout << "Nodo despues Split: ";
+        this->printId();
         
+        cout << "Nuevo nodo: ";
+        childSplit.printId();
+        cout << endl; 
+
         if(_isroot){
             this->toroot(false);
             Node *ptrNewRoot = new Node(_minEntries,_maxEntries,_dimension,false,true);
@@ -889,22 +920,27 @@ Node* Node::split(){
         // ---------------------------
         Node childSplit = Node(_minEntries,_maxEntries,_dimension,_isleaf,_isroot);
         this     ->add(childSaved[extreme1]);   // L1
-        Rectangle* a = childSaved[extreme1].getMBR();
-        this->_MBR = a[0];
         childSplit.add(childSaved[extreme2]);   // L2
         
-
         for(int i=0; i<length; ++i){
             if(i!=extreme1 && i!=extreme2 ){
                 // PASO 0: Si algun nodo se queda vacio
-                if( this     ->_size     == _maxEntries-_minEntries )
+                if( this     ->_size     == _maxEntries-_minEntries + 1 ){
                     childSplit.add(childSaved[i]);
-                if( childSplit.getSize() == _maxEntries-_minEntries )
+                    break;
+                }
+                    
+                if( childSplit.getSize() == _maxEntries-_minEntries + 1 ){
                     this     ->add(childSaved[i]);
+                    break;
+                }
 
                 // PASO 1: Menor crecimiento de nodos
                 growL1 = childSaved[i].howMuchGrow( this     ->getMBR()  );
                 growL2 = childSaved[i].howMuchGrow( childSplit.getMBR()  );
+
+                cout << "Iteration " << i ;
+                cout << ". Grow L1: " << growL1 << ". Grow L2" << growL2 << endl;
 
                 if      (growL1<growL2) this     ->add(childSaved[i]);
                 else if (growL1>growL2) childSplit.add(childSaved[i]);
@@ -1035,6 +1071,9 @@ void Node::endsRectangles(Rectangle* rects,size_t &length, int &extreme1, int &e
         for(int j = i+1; j<length;++j){
             fusion = rects[i].getJoin( rects[j] );
             fusionArea = fusion.area();
+
+            //printf("(%i,%i). Area: %i\n",i,j,fusionArea);
+
             if( maxArea<fusionArea ){
                 maxArea = fusionArea;
                 extreme1 = i;
@@ -1042,6 +1081,8 @@ void Node::endsRectangles(Rectangle* rects,size_t &length, int &extreme1, int &e
             }
         }
     }
+
+    //printf("Extrem: (%i,%i)\n",extreme1,extreme2);
 }
 void Node::endsRectangles(Polygon* poly,size_t &length, int &extreme1, int &extreme2){
     Rectangle fusion;
@@ -1055,6 +1096,9 @@ void Node::endsRectangles(Polygon* poly,size_t &length, int &extreme1, int &extr
             rect2 = poly[j].getMBR();
             fusion = rect1->getJoin( rect2 );
             fusionArea = fusion.area();
+
+            printf("(%i,%i). Area: %i\n",i,j,fusionArea);
+
             if( maxArea<fusionArea ){
                 maxArea = fusionArea;
                 extreme1 = i;
@@ -1062,6 +1106,7 @@ void Node::endsRectangles(Polygon* poly,size_t &length, int &extreme1, int &extr
             }
         }
     }
+    //printf("Extrem: (%i,%i)\n",extreme1,extreme2);
 }
 void Node::endsRectangles(Node* nodo,size_t &length, int &extreme1, int &extreme2){
     Rectangle fusion;
@@ -1075,6 +1120,9 @@ void Node::endsRectangles(Node* nodo,size_t &length, int &extreme1, int &extreme
             rect2 = nodo[j].getMBR();
             fusion = rect1->getJoin( rect2 );
             fusionArea = fusion.area();
+
+            //printf("(%i,%i). Area: %i\n",i,j,fusionArea);
+
             if( maxArea<fusionArea ){
                 maxArea = fusionArea;
                 extreme1 = i;
@@ -1082,6 +1130,7 @@ void Node::endsRectangles(Node* nodo,size_t &length, int &extreme1, int &extreme
             }
         }
     }
+    //printf("Extrem: (%i,%i)\n",extreme1,extreme2);
 }
 
 
@@ -1237,7 +1286,17 @@ int main(int argc, char const *argv[]) {
     arbolito.insert(pC); cout << "C, ";
     arbolito.insert(pD); cout << "D, ";
     arbolito.insert(pE); cout << "E, ";
+
+    cout << endl;
+    arbolito.print();
+    cout << "----------------" << endl;
+
     arbolito.insert(pF); cout << "F, ";
+
+    cout << endl;
+    arbolito.print();
+    cout << "----------------" << endl;
+
     arbolito.insert(pG); cout << "G, ";
     arbolito.insert(pH); cout << "H, ";
     arbolito.insert(pI); cout << "I, ";
