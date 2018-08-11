@@ -80,8 +80,9 @@ int main() {
                 P point(v[i], v[i+1]);
                 pv.push_back(point);
             }
-            // cout << pv[0].to_string() << endl;
             int identifier_polygon = count++;
+            char mychar = 'A';
+            cout << "tree->insert(new Polygon<string> (" << pv[0].to_string("", " ", ",") << "\"" << char(mychar + identifier_polygon) << "\"" << "));" << endl;
             int identifier_region = tree->insert(new Polygon<dtype>(pv, identifier_polygon));
             // tree->print();
             json_string = "{\"status\": true, \"identifier_polygon\":" + to_string(identifier_polygon) + ", \"identifier_region\":" + to_string(identifier_region) + "}";

@@ -14,9 +14,13 @@ class Point{
             this->y = py;
         }
 
-        string to_string() {
+        string to_string(
+            string initSymbol = "[",
+            string endSymbol = "]",
+            string separator = ","
+        ) {
             string str;
-            str += "[" + std::to_string(x) + "," + std::to_string(y) + "],";
+            str += initSymbol + std::to_string(x) + "," + std::to_string(y) + endSymbol + separator;
             return str;
         }
 

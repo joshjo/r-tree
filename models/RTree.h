@@ -107,12 +107,12 @@ class RTree
         Node<T> * auxNode;
         for(int i=0; i<node->count; i++)
         {
-            auxArea = node->children[i].getSimulatedArea(polygon);
+            auxArea = node->children[i]->getSimulatedArea(polygon)-node->children[i]->getArea();
 
             if(auxArea < minArea)
             {
                 minArea = auxArea;
-                auxNode = &(node->children[i]);
+                auxNode = node->children[i];
             }
         }
 
@@ -327,7 +327,8 @@ class RTree
         }
     }
 
-    void getExtremesNodes(Node<T> *node, Node <T> *firstExtremeNode, Node <T> *secondExtremeNode)
+    void getExtremesNodes(
+        Node<T> *node, Node <T> *& firstExtremeNode, Node <T> *& secondExtremeNode)
     {
         // Convert this function with class points
         float maxDistance = -1000000;
@@ -339,54 +340,57 @@ class RTree
 
         for(int i=0; i<node->count; i++)
         {
-            x1 = (node->children[i].rectangle->max.x + node->children[i].rectangle->min.x )/2;
-            y1 = (node->children[i].rectangle->max.y + node->children[i].rectangle->min.y )/2;
+            x1 = (node->children[i]->rectangle->max.x + node->children[i]->rectangle->min.x )/2;
+            y1 = (node->children[i]->rectangle->max.y + node->children[i]->rectangle->min.y )/2;
 
             for(int j=i+1; j< node->count; j++)
             {
-                x2 = (node->children[j].rectangle->max.x + node->children[j].rectangle->min.x )/2;
-                y2 = (node->children[j].rectangle->max.y + node->children[j].rectangle->min.y )/2;
+                x2 = (node->children[j]->rectangle->max.x + node->children[j]->rectangle->min.x )/2;
+                y2 = (node->children[j]->rectangle->max.y + node->children[j]->rectangle->min.y )/2;
 
                 distance = sqrt(pow((x1 - x2),2) +pow((y1 - y2),2));
 
                 if(distance > maxDistance)
                 {
                     maxDistance = distance;
-                    *firstExtremeNode = node->children[i];
-                    *secondExtremeNode = node->children[j];
+                    firstExtremeNode = node->children[i];
+                    secondExtremeNode = node->children[j];
                     pos1 = i;
                     pos2 = j;
                 }
             }
         }
 
-        node->children[pos1].intermediate = true;
-        node->children[pos2].intermediate = true;
+        node->children[pos1]->intermediate = true;
+        node->children[pos2]->intermediate = true;
     }
 
-    void fillExtremeNodesInter(Node<T> *node, Node<T> *firstHalfNode, Node<T> *secondHalfNode)
-    {
+    void fillExtremeNodesInter(
+        Node<T> *node,
+        Node<T> *firstHalfNode,
+        Node<T> *secondHalfNode
+    ) {
         Node<T> *firstExtremeNode = new Node<T>();
         Node<T> *secondExtremeNode = new Node<T>();
         getExtremesNodes(node, firstExtremeNode, secondExtremeNode);
 
         firstExtremeNode->father = firstHalfNode;
-        firstHalfNode->children[firstHalfNode->count] = *firstExtremeNode;//firstExtremeNode->copy()
+        firstHalfNode->children[firstHalfNode->count] = firstExtremeNode;//firstExtremeNode->copy()
         firstHalfNode->count++;
         //firstHalfNode->father = node->father;
         updateRectangleNodes(firstHalfNode, firstExtremeNode);
 
         secondExtremeNode->father = secondHalfNode;
-        secondHalfNode->children[secondHalfNode->count] = *secondExtremeNode;//*secondExtremePolygon;
+        secondHalfNode->children[secondHalfNode->count] = secondExtremeNode;//*secondExtremePolygon;
         secondHalfNode->count++;
         //secondHalfNode->father = node->father;
         updateRectangleNodes(secondHalfNode, secondExtremeNode);
 
-        for(int i=0; i<firstHalfNode->count; i++)
-            firstHalfNode->children[i].intermediate = false;
+        //for(int i=0; i<firstHalfNode->count; i++)
+        //    firstHalfNode->children[i].intermediate = false;
 
-        for(int i=0; i<secondHalfNode->count; i++)
-            secondHalfNode->children[i].intermediate = false;
+        //for(int i=0; i<secondHalfNode->count; i++)
+        //    secondHalfNode->children[i].intermediate = false;
     }
 
     void addNewNodeNearToNode(
@@ -404,28 +408,28 @@ class RTree
         for(int i=0; i < node->count; i++)
         {
 
-            if(node->children[i].intermediate != true)
+            if(node->children[i]->intermediate != true)
             {
                 for(int j=0; j<firstHalfNode->count; j++)
                 {
-                    area = firstHalfNode->getSimulatedArea( &(node->children[i]) );
+                    area = firstHalfNode->getSimulatedArea( (node->children[i]) );
 
                     if(area < minArea)
                     {
                         minArea = area;
-                        nearNode = &(node->children[i]);
+                        nearNode = node->children[i];
                         firstNode = true;
                     }
                 }
 
                 for(int k=0; k<secondHalfNode->count; k++)
                 {
-                    area = secondHalfNode->getSimulatedArea( &(node->children[i]) );
+                    area = secondHalfNode->getSimulatedArea( (node->children[i]) );
 
                     if(area < minArea)
                     {
                         minArea = area;
-                        nearNode = &(node->children[i]);
+                        nearNode = (node->children[i]);
                         firstNode = false;
                     }
                 }
@@ -456,14 +460,14 @@ class RTree
             if( (firstHalfNode->count) < maxEntries-minEntries+1)
             {
                 nearNode->father = firstHalfNode;
-                firstHalfNode->children[firstHalfNode->count] = *nearNode;
+                firstHalfNode->children[firstHalfNode->count] = nearNode;
                 updateRectangleNodes(firstHalfNode, nearNode);
                 firstHalfNode->count++;
             }
             else
             {
                 nearNode->father = secondHalfNode;
-                secondHalfNode->children[secondHalfNode->count] = *nearNode;
+                secondHalfNode->children[secondHalfNode->count] = nearNode;
                 updateRectangleNodes(secondHalfNode, nearNode);
                 secondHalfNode->count++;
             }
@@ -475,7 +479,7 @@ class RTree
             if( (secondHalfNode->count) < maxEntries-minEntries+1)
             {
                 nearNode->father = secondHalfNode;
-                secondHalfNode->children[secondHalfNode->count] = *nearNode;
+                secondHalfNode->children[secondHalfNode->count] = nearNode;
                 updateRectangleNodes(secondHalfNode, nearNode);
                 secondHalfNode->count++;
             }
@@ -483,7 +487,7 @@ class RTree
             else
             {
                 nearNode->father = firstHalfNode;
-                firstHalfNode->children[firstHalfNode->count] = *nearNode;
+                firstHalfNode->children[firstHalfNode->count] = nearNode;
                 updateRectangleNodes(firstHalfNode, nearNode);
                 firstHalfNode->count++;
             }
@@ -491,15 +495,27 @@ class RTree
         nearNode->intermediate = true;
     }
 
-    void addPolygonsToNodeInter(Node<T> *node, Node<T> *newBrotherNode, Node<T> *firstHalfNode, Node<T> *secondHalfNode)
-    {
+    void addPolygonsToNodeInter(
+        Node<T> *node,
+        Node<T> *newBrotherNode,
+        Node<T> *firstHalfNode,
+        Node<T> *secondHalfNode
+    ) {
         int remainedNodes = maxEntries -2 +1;
 
+        cout<<"TipoI:"<<newBrotherNode->intermediate<<endl;
         while(remainedNodes>0)
         {
             addNewNodeNearToNode(node, newBrotherNode, firstHalfNode, secondHalfNode);
+
             remainedNodes--;
         }
+        cout<<"TipoF:"<<newBrotherNode->intermediate<<endl;
+        for(int i=0; i<firstHalfNode->count; i++)
+            firstHalfNode->children[i]->intermediate = false;
+
+        for(int i=0; i<secondHalfNode->count; i++)
+            secondHalfNode->children[i]->intermediate = false;
     }
 
     void insertNode(Node<T> *node, Node<T> *newBrotherNode)
@@ -509,14 +525,18 @@ class RTree
             Node<T> *newRoot = new Node<T>(maxEntries, 0);
             newRoot->leaf = false;
 
+            cout << "=== ROOT ===" << endl;
+
             node->father = newRoot;
-            newRoot->children[newRoot->count]= *node;
-            updateRectangleNodes(newRoot, &(newRoot->children[newRoot->count]) );
+            newRoot->children[newRoot->count]= node;
+            updateRectangleNodes(newRoot, (newRoot->children[newRoot->count]));
+            newRoot->children[newRoot->count]->rectangle->identifier = identifier;
+            identifier++;
             newRoot->count++;
 
             newBrotherNode->father = newRoot;
-            newRoot->children[newRoot->count]= *newBrotherNode;
-            updateRectangleNodes(newRoot, &(newRoot->children[newRoot->count]) );
+            newRoot->children[newRoot->count]= newBrotherNode;
+            updateRectangleNodes(newRoot, (newRoot->children[newRoot->count]) );
             newRoot->count++;
 
             root = newRoot; // A CONSIDERAR PUEDE SER *root = *newRoot
@@ -525,8 +545,8 @@ class RTree
         {
             if((node->father->count) < maxEntries)
             {
-                node->father->children[node->father->count] = *newBrotherNode;
-                updateRectangleNodes(node->father, &(node->father->children[node->father->count]));
+                node->father->children[node->father->count] = newBrotherNode;
+                updateRectangleNodes(node->father, (node->father->children[node->father->count]));
                 node->father->count++;
             }
             else
@@ -540,11 +560,11 @@ class RTree
                 secondHalfNode->leaf = false;
                 identifier++;
 
+                firstHalfNode->father = node->father->father;
 
                 fillExtremeNodesInter(node->father, firstHalfNode, secondHalfNode);
                 addPolygonsToNodeInter(node->father, newBrotherNode, firstHalfNode, secondHalfNode);
 
-                firstHalfNode->father = node->father->father;
                 *(node->father) = *firstHalfNode;
 
                 insertNode(node->father, secondHalfNode);
@@ -558,15 +578,13 @@ class RTree
         if(firstTime)
         {
             root->polygons[root->count] = polygon->copy();
-            // root->polygons[root->count].print();
-            // cout << "firsTime" << endl;
             root->count++;
             firstTime = false;
             updateRectangle(root, polygon);
             return root->rectangle->get_id();
         }
 
-        Node<T> *node = search(polygon);//Nodo más cercano
+        Node<T> *node = search(polygon);
 
         if ((node->count) < maxEntries)
         {
@@ -584,10 +602,13 @@ class RTree
             secondHalfNode = new Node<T>(maxEntries, identifier);
             current_id = identifier;
             identifier++;
-            fillExtremeNodes(node, firstHalfNode, secondHalfNode);
 
-            addPolygonsToNode(node, polygon, firstHalfNode, secondHalfNode);
             firstHalfNode->father = node->father;
+            secondHalfNode->father = node->father;
+
+            fillExtremeNodes(node, firstHalfNode, secondHalfNode);
+            addPolygonsToNode(node, polygon, firstHalfNode, secondHalfNode);
+
             *node = *firstHalfNode;
             insertNode(node, secondHalfNode);
         }
@@ -601,7 +622,7 @@ class RTree
         } else {
             for (int i=0; i < node->count; i++)
             {
-                get_all(&node->children[i], leafs, notleafs);
+                get_all(node->children[i], leafs, notleafs);
             }
 
         }
@@ -738,23 +759,24 @@ class RTree
     void print(Node<T> *node)
     {
         cout<<"Identifier rectangle: R"<<node->rectangle->identifier;
+        if (node->father != NULL) {
+            cout <<" Father: R"<< node->father->rectangle->identifier;
+        }
         cout<<" x:"<<node->rectangle->min.x<<"-"<<node->rectangle->max.x;
         cout<<" y:"<<node->rectangle->min.y<<"-"<<node->rectangle->max.y<<endl;
+
         if(node->leaf)
         {
             for(int i=0; i<node->count; i++)
             {
-                if(node->father != NULL)
-                    cout<< "Poly: "<<node->polygons[i].identifier<<" Father: R"<< node->father->rectangle->identifier <<endl;
-                else
-                    cout<< "Poly: "<<node->polygons[i].identifier <<endl;
+                cout<< "Poly: "<<node->polygons[i].identifier <<endl;
             }
         }
         else
         {
             for(int i=0; i < node->count; i++)
             {
-                print(&node->children[i]);
+                print(node->children[i]);
             }
         }
     }

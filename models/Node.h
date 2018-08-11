@@ -14,8 +14,8 @@ class Node
         int count;
         int maxEntries;
         Rectangle<T> *rectangle;
-        Node *children;
-        Node *father;
+        Node<T> **children;
+        Node<T> *father;
         Polygon<T> *polygons;
         bool leaf;
         bool intermediate;
@@ -31,7 +31,7 @@ class Node
             P min(inf,inf);
             P max(-inf,-inf);
             this->rectangle = new Rectangle<T>(min, max, identifier);
-            this->children = new Node<T>[maxEntries];
+            this->children = new Node<T>*[maxEntries];
             this->polygons = new Polygon<T>[maxEntries];
             this->leaf = true;
             this->intermediate = false;
@@ -40,7 +40,7 @@ class Node
         vector<Node<T>* > getChildrenVector() {
             vector<Node<T>* > array;
             for (size_t i = 0; i < count; i += 1) {
-                array.push_back(&children[i]);
+                array.push_back(children[i]);
             }
             return array;
         }
