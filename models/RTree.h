@@ -7,7 +7,7 @@ template <class T>
 class RTree
 {
     typedef Point<T> P;
-
+    T inf = std::numeric_limits<T>::max();
     struct PointNodeDistComparison {
         PointNodeDistComparison(P point) {
             this->point = point;
@@ -103,7 +103,7 @@ class RTree
             return node;
 
         float auxArea = 0;
-        float minArea = 1000000;
+        float minArea = inf;
         Node<T> * auxNode;
         for(int i=0; i<node->count; i++)
         {
@@ -130,7 +130,7 @@ class RTree
 
     void getExtremesPolygons(Node<T> *node, Polygon <T> *firstExtremePolygon, Polygon <T> *secondExtremePolygon)
     {
-        float maxDistance = -1000000;
+        float maxDistance = -inf;
         float distance;
 
         P p1;
@@ -331,7 +331,7 @@ class RTree
         Node<T> *node, Node <T> *& firstExtremeNode, Node <T> *& secondExtremeNode)
     {
         // Convert this function with class points
-        float maxDistance = -1000000;
+        float maxDistance = -inf;
         float distance;
 
         float x1, x2;
@@ -401,7 +401,7 @@ class RTree
     ) {
         // Convert
         float area = 0;
-        float minArea = 1000000;
+        float minArea = inf;
         Node<T> *nearNode;
         bool firstNode = true;
 
