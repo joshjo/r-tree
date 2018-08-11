@@ -831,11 +831,11 @@ Node* Node::insert(Polygon &dat){
         while( i<_size && !allocated ){
             // Verifica si dat está dentro del MBR de nodo hijo
             Rectangle *a = _childNode[i].getMBR();
-            cout << "(" << i << ") "; 
+            //cout << "(" << i << ") "; 
             a->print(true);
             cout << endl;
             if ( dat.iswithin( _childNode[i].getMBR() ) ){
-                cout << "(" << i << ") :c " << endl;
+                //cout << "(" << i << ") :c " << endl;
                 childSplit = this->_childNode[i].insert( dat );
                 allocated = true;
             }
@@ -1372,6 +1372,7 @@ int main(int argc, char const *argv[]) {
     Polygon pJ = Polygon(P(10, 5),"J");
     Polygon pK = Polygon(P(11, 8),"K");
     Polygon pL = Polygon(P(12,10),"L");
+    Polygon pM = Polygon(P( 6,11),"M");
 
     Rectangle *rA = pA.getMBR();
     rA->print();
@@ -1418,7 +1419,8 @@ int main(int argc, char const *argv[]) {
     arbolito.insert(pI); cout << "Entra I..., ";
     arbolito.insert(pJ); cout << "Entra J..., ";
     arbolito.insert(pK); cout << "Entra K..., ";
-    arbolito.insert(pL); cout << "Entra L..." << endl;
+    arbolito.insert(pL); cout << "Entra L...  ";
+    arbolito.insert(pM); cout << "Entra M..." << endl;
     cout << endl;
 
     arbolito.print();
