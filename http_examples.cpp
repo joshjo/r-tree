@@ -81,9 +81,10 @@ int main() {
                 pv.push_back(point);
             }
             // cout << pv[0].to_string() << endl;
-            int identifier = tree->insert(new Polygon<dtype>(pv, count++));
+            int identifier_polygon = count++;
+            int identifier_region = tree->insert(new Polygon<dtype>(pv, identifier_polygon));
             // tree->print();
-            json_string = "{\"status\": true, \"id\":" + to_string(identifier) + "}";
+            json_string = "{\"status\": true, \"identifier_polygon\":" + to_string(identifier_polygon) + ", \"identifier_region\":" + to_string(identifier_region) + "}";
             stream << json_string;
             response->write_get(stream,header);
         } catch (const exception &e) {

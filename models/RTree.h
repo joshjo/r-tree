@@ -521,7 +521,6 @@ class RTree
 
             root = newRoot; // A CONSIDERAR PUEDE SER *root = *newRoot
         }
-
         else
         {
             if((node->father->count) < maxEntries)
@@ -555,6 +554,7 @@ class RTree
 
     int insert(Polygon<T> *polygon)
     {
+        T current_id;
         if(firstTime)
         {
             root->polygons[root->count] = polygon->copy();
@@ -563,7 +563,7 @@ class RTree
             root->count++;
             firstTime = false;
             updateRectangle(root, polygon);
-            return polygon->identifier;
+            return root->rectangle->get_id();
         }
 
         Node<T> *node = search(polygon);//Nodo más cercano
@@ -573,6 +573,7 @@ class RTree
             node->polygons[node->count] = polygon->copy();
             node->count++;
             updateRectangle(node, polygon);
+            current_id = node->rectangle->identifier;
         }
         else
         {
@@ -581,18 +582,16 @@ class RTree
 
             firstHalfNode = new Node<T>(maxEntries, node->rectangle->identifier);
             secondHalfNode = new Node<T>(maxEntries, identifier);
+            current_id = identifier;
             identifier++;
-
-
             fillExtremeNodes(node, firstHalfNode, secondHalfNode);
 
             addPolygonsToNode(node, polygon, firstHalfNode, secondHalfNode);
             firstHalfNode->father = node->father;
             *node = *firstHalfNode;
-
             insertNode(node, secondHalfNode);
         }
-        return polygon->identifier;
+        return current_id;
     }
 
     void get_all(Node<T> *node, vector<Node<T> *> & leafs, vector<Node<T> *> & notleafs) {
@@ -708,7 +707,8 @@ class RTree
         for(auto node : L){
             for (size_t i = 0; i < node->count; i += 1) {
                 json_string += "{\"id\":" + std::to_string(
-                    node->polygons[i].get_id()) + ",\"polygon\": [";
+                    node->polygons[i].get_id()
+                ) + ", \"region\":" + to_string(node->rectangle->get_id()) + ",\"polygon\": [";
                 for (auto point : node->polygons[i].get_points()) {
                     json_string += point.to_string();
                 }
