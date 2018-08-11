@@ -85,7 +85,7 @@ public:
     bool inRange(Point<DataType> p);
     void join(Rectangle *rect);
     DataType area();
-
+    
     bool isThereIntersectionWith(Rectangle &other);
     
     std::vector<P> getEnds();
@@ -302,6 +302,7 @@ protected:
     std::string _identifier;
 public:
     Rectangle* getMBR(){return &this->_MBR;};
+    Rectangle getMBR2(){return this->_MBR;};
     std::string getId(){return this->_identifier;}
     void printMBR(){
         printf("Object %s:\n.......................\n",_identifier.c_str());
@@ -550,7 +551,7 @@ private:
     Polygon * _childPoly;
     Node    * _childNode;
 
-    void add(Polygon &element);
+    void add(Polygon  element);
     void add(Node    &element);
     void add(Node    *element);
 
@@ -570,6 +571,7 @@ public:
          int dimension): _minEntries(minEntries), _maxEntries(maxEntries), _dimension(dimension), 
                          _size(0),
                          _isleaf(true), _isroot(false){
+        _MBR = Rectangle(-1,-1,-1,-1);
         _childPoly = new Polygon[maxEntries + 1];
     }
     Node(int  minEntries, 
@@ -578,6 +580,7 @@ public:
          bool isLeaf): _minEntries(minEntries), _maxEntries(maxEntries), _dimension(dimension), 
                          _size(0),
                          _isleaf(isLeaf), _isroot(false){
+        _MBR = Rectangle(-1,-1,-1,-1);
         if(_isleaf) _childPoly = new Polygon[_maxEntries + 1];
         else        _childNode = new Node   [_maxEntries + 1];
     }
@@ -588,6 +591,7 @@ public:
          bool isRoot): _minEntries(minEntries), _maxEntries(maxEntries), _dimension(dimension), 
                          _size(0),
                          _isleaf(isLeaf), _isroot(isRoot){
+        _MBR = Rectangle(-1,-1,-1,-1);
         if(_isleaf) _childPoly = new Polygon[_maxEntries + 1];
         else        _childNode = new Node   [_maxEntries + 1];
     }
@@ -615,12 +619,13 @@ public:
  */
     size_t         getSize(){return _size;}
     Rectangle*     getMBR (){return &this->_MBR;};
+    Rectangle     getMBR2 (){return this->_MBR;};
     std::vector<P> get_points();
 
     DataType howMuchGrow(Rectangle *r);
 
     void print(int level = 0){
-        for(int i=0; i<level; ++i) cout << "***";
+        for(int i=0; i<level; ++i) cout << "*** ";
         if(_isleaf){
             cout << "Node leaf: ";
             _MBR.print(true);
@@ -683,16 +688,15 @@ public:
  *    - element: Elemento nuevo que se añade al nodo.
  * 
  */
-void Node::add(Polygon &element){
+void Node::add(Polygon element){
     // Add to _children
-    this->_childPoly[ this->_size ] = element;
+    this->_childPoly[ _size ] = element;
     this->_size++;
     
     if(_size < 2){
-        Rectangle *elementMBR = element.getMBR();
-        //memcpy(&this->_MBR,elementMBR,sizeof(elementMBR));
-        std::copy(elementMBR,elementMBR+1,&this->_MBR);
-        //this->_MBR = elementMBR[0];
+        Rectangle elementMBR = element.getMBR2();
+        Interval *Ik = elementMBR.getIntervals();
+        this->_MBR = Rectangle(Ik[0],Ik[1]);
     }
     else
         this->_MBR.join(element.getMBR());
@@ -706,8 +710,8 @@ void Node::add(Node &element){
         Rectangle *elementMBR = element.getMBR();
         elementMBR->print(); //-------------------------------------------------------------------------------------
         //memcpy(&this->_MBR,elementMBR,sizeof(elementMBR[0]));
-        std::copy(elementMBR,elementMBR+1,&this->_MBR);
-        //this->_MBR = elementMBR[0];
+        //std::copy(elementMBR,elementMBR+1,&this->_MBR);
+        *(&this->_MBR) = *elementMBR;
     }
     else
         this->_MBR.join(element.getMBR());
@@ -721,8 +725,9 @@ void Node::add(Node *element){
         Rectangle *elementMBR = element[0].getMBR();
         //elementMBR->print();
         //memcpy(&this->_MBR,elementMBR,sizeof(elementMBR[0]));
-        std::copy(elementMBR,elementMBR+1,&this->_MBR);
+        //std::copy(elementMBR,elementMBR+1,&this->_MBR);
         //this->_MBR = elementMBR[0];
+        *(&this->_MBR) = *elementMBR;
     }
     else
         this->_MBR.join(element[0].getMBR());
@@ -1119,7 +1124,7 @@ void Node::endsRectangles(Polygon* poly,size_t &length, int &extreme1, int &extr
             fusion = rect1->getJoin( rect2 );
             fusionArea = fusion.area();
 
-            //printf("(%i,%i). Area: %i\n",i,j,fusionArea);
+            printf("(%i,%i). Area: %i\n",i,j,fusionArea);
 
             if( maxArea<fusionArea ){
                 maxArea = fusionArea;
@@ -1128,7 +1133,7 @@ void Node::endsRectangles(Polygon* poly,size_t &length, int &extreme1, int &extr
             }
         }
     }
-    //printf("Extrem: (%i,%i)\n",extreme1,extreme2);
+    printf("Extrem: (%i,%i)\n",extreme1,extreme2);
 }
 void Node::endsRectangles(Node* nodo,size_t &length, int &extreme1, int &extreme2){
     Rectangle fusion;
@@ -1321,35 +1326,39 @@ int main(int argc, char const *argv[]) {
     Polygon pH = Polygon(P( 4, 5),"H");
     Polygon pI = Polygon(P( 5, 3),"I");
     Polygon pJ = Polygon(P(10, 5),"J");
-    Polygon pK = Polygon(P(11,13),"K");
-    Polygon pL = Polygon(P(12,15),"L");
+    Polygon pK = Polygon(P(11, 8),"K");
+    Polygon pL = Polygon(P(12,10),"L");
 
+    Rectangle *rA = pA.getMBR();
+    rA->print();
     arbolito.insert(pA); cout << "A, ";
-
+/*
     cout << endl;
     arbolito.print();
     cout << "----------------" << endl;
-
+*/
     arbolito.insert(pB); cout << "B, ";
-    arbolito.insert(pC); cout << "C, ";
-
+  /*  
     cout << endl;
     arbolito.print();
+    cout << "HGJ --------" << endl;
+    rA->print();
     cout << "----------------" << endl;
-
+*/
+    arbolito.insert(pC); cout << "C, ";
     arbolito.insert(pD); cout << "D, ";
     arbolito.insert(pE); cout << "E, ";
-
+/*
     cout << endl;
     arbolito.print();
     cout << "----------------" << endl;
-
+*/
     arbolito.insert(pF); cout << "F, ";
-
+/*
     cout << endl;
     arbolito.print();
     cout << "----------------" << endl;
-
+*/
     arbolito.insert(pG); cout << "G, ";
     arbolito.insert(pH); cout << "H, ";
     arbolito.insert(pI); cout << "I, ";
