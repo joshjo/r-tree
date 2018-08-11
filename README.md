@@ -1,7 +1,7 @@
 R Tree
 ========
 
-### Compile and run
+#### Compile and run server
 
 Compile with a C++11 compliant compiler:
 ```sh
@@ -14,18 +14,19 @@ cd ..
 
 ### Usage
 
-See http_examples.cpp or https_examples.cpp for example usage.
-
-See particularly the JSON-POST (using Boost.PropertyTree) and the GET /match/[number] examples, which are most relevant.
+See run_server.cpp
 
 ### Dependencies
 
 * Boost.Asio or standalone Asio
-* Boost is required to compile the examples
-* For HTTPS: OpenSSL libraries
+* Boost is required to compile
 
-#### HTTP
+### HTTP
 
-Run the server and client examples: `./build/http_examples`
+Run the server: `./build/run_server`
 
-Direct your favorite browser to for instance http://localhost:8080/
+Direct your favorite browser to for instance http://localhost:8090/
+
+#### Compile and run Client
+
+....

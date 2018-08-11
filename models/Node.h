@@ -2,7 +2,7 @@
 #define NODE_H
 
 
-#include "Lolygon.h"
+#include "Polygon.h"
 #include "Rectangle.h"
 
 
@@ -27,7 +27,7 @@ class Node
             this->count = 0;
             this->father = 0;
             this->maxEntries = maxEntries;
-            int inf = 1000000;
+            T inf = std::numeric_limits<T>::max();
             P min(inf,inf);
             P max(-inf,-inf);
             this->rectangle = new Rectangle<T>(min, max, identifier);

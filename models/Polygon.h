@@ -14,6 +14,7 @@ template <class T>
 class Polygon
 {
 	typedef Point<T> P;
+    T inf = std::numeric_limits<T>::max();
     private:
         vector<P> points;
         bool intermediate;
@@ -36,8 +37,8 @@ class Polygon
             getMinMax();
         }
         void getMinMax(){
-            T xmin = std::numeric_limits<T>::max();
-            T ymin = std::numeric_limits<T>::max();
+            T xmin = inf;
+            T ymin = inf;
             T xmax = 0;
             T ymax = 0;
 
@@ -75,10 +76,6 @@ class Polygon
                 points[i].print();
                 cout << " - ";
             }
-            // cout << endl << "min: ";
-            // min.print();
-            // cout << endl << "max: ";
-            // max.print();
             cout << endl;
         }
 
