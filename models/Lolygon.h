@@ -18,25 +18,54 @@ class Polygon
         vector<P> points;
         bool intermediate;
         T identifier;
+    public:
         P min;
         P max;
-    public:
         Polygon(){}
-        Polygon(vector<P> pPoints, T identifier, P pMin, P pMax)
+        Polygon(vector<P> pPoints, T identifier)
         {
             this->points = pPoints;
             this->intermediate = false;
             this->identifier = identifier;
-            this->min = pMin;
-            this->max = pMax;
+            getMinMax();
         }
         Polygon(P p, T identifier){
             this->points.push_back(p);
             this->identifier = identifier;
             this->intermediate = false;
-            this->min = p;
-            this->max = p;
+            getMinMax();
         }
+        void getMinMax(){
+            T xmin = std::numeric_limits<T>::max();
+            T ymin = std::numeric_limits<T>::max();
+            T xmax = 0;
+            T ymax = 0;
+
+            if(this->points.size() == 1){
+                this->min = this->points[0];
+                this->max = this->points[0];
+            }
+            else{
+                for(auto p : this->points){
+                    if(p.x < xmin){
+                        xmin = p.x;
+                    }
+                    if(p.y < ymin){
+                        ymin = p.y;
+                    }
+                    if(p.x > xmax){
+                        xmax = p.x;
+                    }
+                    if(p.y > ymax){
+                        ymax = p.y;
+                    }
+                }
+                P pmin(xmin,ymin);
+                P pmax(xmax,ymax);
+                this->min = pmin;
+                this->max = pmax;
+            }
+        }        
         int get_id(){
             return identifier;
         }
@@ -55,7 +84,7 @@ class Polygon
 
         Polygon<T> copy()
         {
-            return *(new Polygon(points, identifier, min, max));
+            return *(new Polygon(points, identifier));
         }
         vector<P> get_points(){
             return points;
@@ -88,7 +117,14 @@ class Polygon
 
             return pow(abs(p.x - rx), 2) + pow(abs(p.y - ry), 2);
         }
-
+        vector<P> get_box() {
+            vector<P> points(4);
+            points[0] = P(min.x, min.y);
+            points[1] = P(max.x, min.y);
+            points[2] = P(max.x, max.y);
+            points[3] = P(min.x, max.y);
+            return points;
+        }
     friend class RTree<T>;
     friend class Node<T>;
 };

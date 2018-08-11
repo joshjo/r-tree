@@ -81,7 +81,6 @@ class RTree
             if(nodeC->rectangle->min.x < nodeF->rectangle->min.x) {
                 nodeF->rectangle->min.x = nodeC->rectangle->min.x;
             }
-
             if(nodeC->rectangle->max.x > nodeF->rectangle->max.x) {
                 nodeF->rectangle->max.x = nodeC->rectangle->max.x;
             }
@@ -93,7 +92,6 @@ class RTree
             if(nodeC->rectangle->max.y > nodeF->rectangle->max.y) {
                 nodeF->rectangle->max.y = nodeC->rectangle->max.y;
             }
-
             nodeF = nodeF->father;
         }
         while(nodeF != NULL);
@@ -187,27 +185,34 @@ class RTree
 
     float getDistance( Polygon<T> * p1, Polygon<T> *p2 )
     {
-        return sqrt( pow(p1->points[0].x-p2->points[0].x,2) + pow(p1->points[0].y-p2->points[0].y,2));
+        vector<P> box1 = p1->get_box();
+        vector<P> box2 = p2->get_box();
+        float minDistance = std::numeric_limits<T>::max();
+        for(auto pointBox1 : box1)
+        {
+            for(auto pointBox2 : box2)
+            {
+                float distance = sqrt(pow(pointBox1.x-pointBox2.x,2) + pow(pointBox1.y-pointBox2.y,2));
+                if(minDistance > distance)
+                {
+                    minDistance = distance;
+                }
+            }
+        }
+        return minDistance;
     }
 
     void addNewPolygonNearToNode(Node<T> *node, Polygon<T> *polygon, Node<T> *firstHalfNode, Node<T> *secondHalfNode)
     {
         float distance = 0, area1, area2;
-        float minDistance = 1000000;
+        float minDistance = std::numeric_limits<T>::max();
         Polygon<T> *nearPolygon;
         bool firstNode = true;
-
-        for(int i=0; i < node->count; i++)
-        {
-
-            if(node->polygons[i].intermediate != true)
-            {
-                for(int j=0; j<firstHalfNode->count; j++)
-                {
+        for(int i=0; i < node->count; i++){
+            if(node->polygons[i].intermediate != true){
+                for(int j=0; j<firstHalfNode->count; j++){
                     distance = getDistance( &(firstHalfNode->polygons[0]), &(node->polygons[i]) );
-
-                    if(distance == minDistance)
-                    {
+                    if(distance == minDistance){
                         area1 = firstHalfNode->getSimulatedArea( nearPolygon );
                         area2 = firstHalfNode->getSimulatedArea(&(node->polygons[i]));
                         if(area2 < area1)
@@ -215,34 +220,24 @@ class RTree
                             nearPolygon = &(node->polygons[i]);
                             firstNode = true;
                         }
-
                     }
-                    else if(distance < minDistance)
-                    {
+                    else if(distance < minDistance){
                         minDistance = distance;
                         nearPolygon = &(node->polygons[i]);
                         firstNode = true;
                     }
-
-
                 }
-
-                for(int k=0; k<secondHalfNode->count; k++)
-                {
+                for(int k=0; k<secondHalfNode->count; k++){
                     distance = getDistance( &(secondHalfNode->polygons[0]), &(node->polygons[i]) );
-
-                    if(distance == minDistance)
-                    {
+                    if(distance == minDistance){
                         area1 = secondHalfNode->getSimulatedArea( nearPolygon );
                         area2 = secondHalfNode->getSimulatedArea(&(node->polygons[i]));
-                        if(area2<area1)
-                        {
+                        if(area2<area1){
                             nearPolygon = &(node->polygons[i]);
                             firstNode = false;
                         }
                     }
-                    else if(distance < minDistance)
-                    {
+                    else if(distance < minDistance){
                         minDistance = distance;
                         nearPolygon = &(node->polygons[i]);
                         firstNode = false;
@@ -250,42 +245,31 @@ class RTree
                 }
             }
         }
-
-        if(polygon->intermediate != true)
-        {
+        if(polygon->intermediate != true){
             distance = getDistance( &(firstHalfNode->polygons[0]), polygon );
-            if(distance == minDistance)
-            {
+            if(distance == minDistance){
                 area1 = firstHalfNode->getSimulatedArea( nearPolygon );
                 area2 = firstHalfNode->getSimulatedArea( polygon );
-                if(area2<area1)
-                {
+                if(area2<area1){
                     nearPolygon = polygon;
                     firstNode = true;
                 }
-
             }
-            else if(distance < minDistance)
-            {
+            else if(distance < minDistance){
                 minDistance = distance;
                 nearPolygon = polygon;
                 firstNode = true;
             }
-
             distance = getDistance( &(secondHalfNode->polygons[0]), polygon );
-            if(distance == minDistance)
-            {
+            if(distance == minDistance){
                 area1 = secondHalfNode->getSimulatedArea( nearPolygon );
                 area2 = secondHalfNode->getSimulatedArea( polygon );
-                if(area2<area1)
-                {
+                if(area2<area1){
                     nearPolygon = polygon;
                     firstNode = false;
                 }
-
             }
-            else if(distance < minDistance)
-            {
+            else if(distance < minDistance){
                 minDistance = distance;
                 nearPolygon = polygon;
                 firstNode = false;
