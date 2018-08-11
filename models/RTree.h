@@ -420,7 +420,7 @@ class RTree
         }
     }
 
-    void insert(Polygon<T> *polygon)
+    int insert(Polygon<T> *polygon)
     {
         if(firstTime)
         {
@@ -430,9 +430,8 @@ class RTree
             root->count++;
             firstTime = false;
             updateRectangle(root, polygon);
-            return;
+            return polygon->identifier;
         }
-
 
         Node<T> *node = search(polygon);//Nodo más cercano
 
@@ -480,8 +479,7 @@ class RTree
             cout<<"second"<<secondHalfNode->count<<endl;
             cout<<"======================"<<endl;*/
         }
-
-
+        return polygon->identifier;
     }
 
     void get_all(Node<T> *node, vector<Node<T> *> & leafs, vector<Node<T> *> & notleafs) {
@@ -499,7 +497,6 @@ class RTree
     }
 
     void get_all(vector<Node<T> *> & leafs, vector<Node<T> *> & notleafs) {
-        cout << "firstTime" << firstTime << endl;
         if (firstTime) {
             return;
         }
@@ -508,8 +505,32 @@ class RTree
 
 
     vector <Polygon<T> * > nearestSearch(P point, size_t k) {
-        vector <Node<T> * > missingVisits = root->getChildrenVector();
+        /*
+        - We use 2 arrays:
+          a. missingVisits: which store all the nodes that has not been
+             visited.
+          b. knearest: (answer) The array of nodes which are going to
+             be returned.
+        - The algorithm stops when the knearest arrays has the k length
+          and the last element distance to the point is lower than the
+          first node in the missingVisits array.
+        - Basically there's 2 cases:
+          a. If the node is a leaf, then we add the polygons to the answer
+             only if the distance is lower to the last element in the current
+             answer
+          b. Otherwise, we add the node to the missingVisits
+        - At the begining if the root is a leaf, we add directly to
+          the missingVisits.
+          Otherwise we add the children's root to the missingVisits.
+        */
+        vector <Node<T> * > missingVisits;
         vector <Polygon<T> * > knearest;
+
+        if (root->leaf) {
+            missingVisits.push_back(root);
+        } else {
+            missingVisits = root->getChildrenVector();
+        }
 
         sort(
             missingVisits.begin(),
@@ -569,24 +590,22 @@ class RTree
 
         get_all(L, NL);
 
-        string json_string = "{\"polygon\": [ ";
+        string json_string = "{\"polygons\": [ ";
 
         for(auto node : L){
-            json_string += "{\"id\":" + std::to_string(node->polygons->get_id()) + ",\"polygon\": [";
             for (size_t i = 0; i < node->count; i += 1) {
-                for (auto point : node->get_polygons()[i].get_points()) {
+                json_string += "{\"id\":" + std::to_string(
+                    node->polygons[i].get_id()) + ",\"polygon\": [";
+                for (auto point : node->polygons[i].get_points()) {
                     json_string += point.to_string();
                 }
+                json_string.pop_back();
+                json_string += "]},";
             }
-            // for (auto point : node->get_polygons()->get_points()) {
-            //     json_string += point.to_string();
-            // }
             json_string.pop_back();
-            json_string += "]},";
+            json_string += ",";
         }
-
         json_string.pop_back();
-
         json_string += "], \"regions\": [ ";
 
         for (auto node : NL) {

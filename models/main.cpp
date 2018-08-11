@@ -30,8 +30,8 @@ int main() {
     cout << tree->get_json_string() << endl;
     // tree->print();
     // cout << " ======= " << endl;
-    Point<dtype> searchPoint(9, 8);
-    tree->nearestSearch(searchPoint, 0);
+    // Point<dtype> searchPoint(1, 1);
+    // tree->nearestSearch(searchPoint, 2);
 
     return 0;
 }
