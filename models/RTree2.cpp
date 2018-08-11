@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <math.h>
 #include "Point.h"
 
 #if !defined(RTREE_H)
@@ -352,10 +353,37 @@ public:
     bool iswithin(Rectangle &d);
     DataType howMuchGrow(Rectangle *r);
     void* search(Object *dat);
+    P     center();
+    DataType distanceTo(Polygon &d);
 
     std::vector<P> get_points();
 };
 
+
+P Polygon::center(){
+    double x = 0,
+          y = 0;
+    
+    for(int i=0; i<_data.size();++i){
+        x += (double)_data[i].x;
+        y += (double)_data[i].y;
+    }
+    x = (DataType) x/_data.size();
+    y = (DataType) y/_data.size();
+    return P(x,y);
+}
+
+DataType Polygon::distanceTo(Polygon &d){
+    P aqui = this->center();
+    P alla = d    .center();
+
+    double dx = aqui.x - alla.x;
+    double dy = aqui.y - alla.y;
+
+    double di = sqrt( dx*dx + dy*dy );
+    return (DataType) di;
+}   
+  
 
 /*
  * UpdateMBR
@@ -402,13 +430,13 @@ bool Polygon::iswithin(Polygon &d){
  */
 bool Polygon::iswithin(Rectangle *d){
     for (int i=0; i<this->_data.size(); ++i){
-        if(  d->inRange( this->_data[i] )  ) return false;
+        if(  !d->inRange( this->_data[i] )  ) return false;
     }
     return true;
 }
 bool Polygon::iswithin(Rectangle &d){
     for (int i=0; i<this->_data.size(); ++i){
-        if(  d.inRange( this->_data[i] )  ) return false;
+        if(  !d.inRange( this->_data[i] )  ) return false;
     }
     return true;
 }
@@ -707,11 +735,12 @@ void Node::add(Node &element){
     this->_size++;
 
     if(_size < 2){
-        Rectangle *elementMBR = element.getMBR();
-        elementMBR->print(); //-------------------------------------------------------------------------------------
-        //memcpy(&this->_MBR,elementMBR,sizeof(elementMBR[0]));
-        //std::copy(elementMBR,elementMBR+1,&this->_MBR);
-        *(&this->_MBR) = *elementMBR;
+        Rectangle elementMBR = element.getMBR2();
+        Interval *Ik = elementMBR.getIntervals();
+        this->_MBR = Rectangle(Ik[0],Ik[1]);
+
+        //elementMBR->print();
+        //*(&this->_MBR) = *elementMBR;
     }
     else
         this->_MBR.join(element.getMBR());
@@ -722,12 +751,11 @@ void Node::add(Node *element){
     this->_size++;
 
     if(_size < 2){
-        Rectangle *elementMBR = element[0].getMBR();
-        //elementMBR->print();
-        //memcpy(&this->_MBR,elementMBR,sizeof(elementMBR[0]));
-        //std::copy(elementMBR,elementMBR+1,&this->_MBR);
-        //this->_MBR = elementMBR[0];
-        *(&this->_MBR) = *elementMBR;
+        Rectangle elementMBR = element[0].getMBR2();
+        Interval *Ik = elementMBR.getIntervals();
+        this->_MBR = Rectangle(Ik[0],Ik[1]);
+
+        //*(&this->_MBR) = *elementMBR;
     }
     else
         this->_MBR.join(element[0].getMBR());
@@ -802,7 +830,12 @@ Node* Node::insert(Polygon &dat){
         // Primero: Nodo en donde entra (apropiado)
         while( i<_size && !allocated ){
             // Verifica si dat está dentro del MBR de nodo hijo
-            if ( dat.iswithin( this->_childNode[i].getMBR() ) ){
+            Rectangle *a = _childNode[i].getMBR();
+            cout << "(" << i << ") "; 
+            a->print(true);
+            cout << endl;
+            if ( dat.iswithin( _childNode[i].getMBR() ) ){
+                cout << "(" << i << ") :c " << endl;
                 childSplit = this->_childNode[i].insert( dat );
                 allocated = true;
             }
@@ -1093,9 +1126,13 @@ void Node::endsRectangles(Rectangle* rects,size_t &length, int &extreme1, int &e
     Rectangle fusion;
     DataType maxArea = -INF;
     DataType fusionArea;
+    
+    float maxDistance = (float)(-INF);
+    float distance;
 
     for(int i=0; i<length-1; ++i){
         for(int j = i+1; j<length;++j){
+            
             fusion = rects[i].getJoin( rects[j] );
             fusionArea = fusion.area();
 
@@ -1113,27 +1150,34 @@ void Node::endsRectangles(Rectangle* rects,size_t &length, int &extreme1, int &e
 }
 void Node::endsRectangles(Polygon* poly,size_t &length, int &extreme1, int &extreme2){
     Rectangle fusion;
+    /*
     DataType maxArea = -INF;
     DataType fusionArea;
-    Rectangle *rect1, *rect2;
+    */
+    DataType maxDistance = -INF;
+    DataType distance;
+    //Rectangle *rect1, *rect2;
 
     for(int i=0; i<length-1; ++i){
         for(int j = i+1; j<length;++j){
+            distance = poly[i].distanceTo( poly[j] );
+            /*
             rect1 = poly[i].getMBR();
             rect2 = poly[j].getMBR();
             fusion = rect1->getJoin( rect2 );
             fusionArea = fusion.area();
 
             printf("(%i,%i). Area: %i\n",i,j,fusionArea);
-
-            if( maxArea<fusionArea ){
-                maxArea = fusionArea;
+            */
+            if( maxDistance<distance ){
+                maxDistance = distance;
                 extreme1 = i;
                 extreme2 = j;
             }
+            
         }
     }
-    printf("Extrem: (%i,%i)\n",extreme1,extreme2);
+    //printf("Extrem: (%i,%i)\n",extreme1,extreme2);
 }
 void Node::endsRectangles(Node* nodo,size_t &length, int &extreme1, int &extreme2){
     Rectangle fusion;
@@ -1331,13 +1375,13 @@ int main(int argc, char const *argv[]) {
 
     Rectangle *rA = pA.getMBR();
     rA->print();
-    arbolito.insert(pA); cout << "A, ";
+    arbolito.insert(pA); cout << "Entra A..., ";
 /*
     cout << endl;
     arbolito.print();
     cout << "----------------" << endl;
 */
-    arbolito.insert(pB); cout << "B, ";
+    arbolito.insert(pB); cout << "Entra B..., ";
   /*  
     cout << endl;
     arbolito.print();
@@ -1345,26 +1389,36 @@ int main(int argc, char const *argv[]) {
     rA->print();
     cout << "----------------" << endl;
 */
-    arbolito.insert(pC); cout << "C, ";
-    arbolito.insert(pD); cout << "D, ";
-    arbolito.insert(pE); cout << "E, ";
-/*
+    arbolito.insert(pC); cout << "Entra C..., ";
+    arbolito.insert(pD); cout << "Entra D..., ";
+    arbolito.insert(pE); cout << "Entra E..., ";
+
     cout << endl;
     arbolito.print();
     cout << "----------------" << endl;
-*/
-    arbolito.insert(pF); cout << "F, ";
-/*
+
+    arbolito.insert(pF); cout << "Entra F..., ";
+
     cout << endl;
     arbolito.print();
     cout << "----------------" << endl;
-*/
-    arbolito.insert(pG); cout << "G, ";
-    arbolito.insert(pH); cout << "H, ";
-    arbolito.insert(pI); cout << "I, ";
-    arbolito.insert(pJ); cout << "J, ";
-    arbolito.insert(pK); cout << "K, ";
-    arbolito.insert(pL); cout << "L" << endl;
+
+    arbolito.insert(pG); cout << "Entra G..., ";
+
+    cout << endl;
+    arbolito.print();
+    cout << "----------------" << endl;
+
+    arbolito.insert(pH); cout << "Entra H..., ";
+
+    cout << endl;
+    arbolito.print();
+    cout << "----------------" << endl;
+
+    arbolito.insert(pI); cout << "Entra I..., ";
+    arbolito.insert(pJ); cout << "Entra J..., ";
+    arbolito.insert(pK); cout << "Entra K..., ";
+    arbolito.insert(pL); cout << "Entra L..." << endl;
     cout << endl;
 
     arbolito.print();
