@@ -1,6 +1,7 @@
 #include <vector>
 #include <utility>
 #include <iostream>
+#include <stdio.h>
 #include <string>
 #include "Point.h"
 
@@ -25,12 +26,17 @@ struct Interval{
 
     bool inRange(DataType &val){return ( min<val && val<max );}  
     void join(Interval &Ik){
-        min = (Ik.min<min) ? Ik.min : min;
-        max = (Ik.max>max) ? Ik.max : max;
+        if(Ik.min<min) min = Ik.min;
+        if(Ik.max>max) max = Ik.max;
     }
     Interval getJoin(Interval &Ik){
-        DataType newmin = (Ik.min<min) ? Ik.min : min;
-        DataType newmax = (Ik.max>max) ? Ik.max : max;
+        DataType newmin, newmax;
+        if(Ik.min<min) newmin = Ik.min;
+        else           newmin =    min;
+
+        if(Ik.max>max) newmax = Ik.max;
+        else           newmax =    max;
+
         return Interval(newmin,newmax);
     }
     DataType length(){return max-min;}
@@ -79,9 +85,6 @@ public:
     bool inRange(Point<DataType> p);
     void join(Rectangle *rect);
     DataType area();
-    void reset(){
-
-    }
 
     bool isThereIntersectionWith(Rectangle &other);
     
@@ -212,8 +215,14 @@ Rectangle Rectangle::getJoin(Rectangle *rect){
  */
 DataType Rectangle::area(){
     if (_dimension == 2){
-        cout << "Ik= x: " << ( this->_Ik[0].length() + 1) << ". ";
-        cout << "y: " << ( this->_Ik[1].length() + 1) << ". " << endl;
+        /*
+        cout << "Area. ";
+        cout << "x = [" << _Ik[0].min << "," << _Ik[0].max << "] = ";
+        cout << _Ik[0].length() << "; ";
+        cout << "y = [" << _Ik[1].min << "," << _Ik[1].max << "] = ";
+        cout << _Ik[1].length() << ". ";
+        cout << "(x+1)(y+1) = " << ( this->_Ik[0].length() + 1)*(this->_Ik[1].length() + 1) << "." << endl;
+        */
         return ( this->_Ik[0].length() + 1)*(this->_Ik[1].length() + 1);
     }
     else if(_dimension == 0){
@@ -265,7 +274,7 @@ void Rectangle::print(bool basic = false){
     if( !basic ) printf ("Rectangulo:\n");
     printf ("(");
     if(_dimension == 2)
-        printf ("[%i,%i]; [%i,%i]",_Ik[0].min,_Ik[1].min,_Ik[0].max,_Ik[1].max);
+        printf ("[%i,%i];[%i,%i]",_Ik[0].min,_Ik[1].min,_Ik[0].max,_Ik[1].max);
     else
         for(int i=0;i<_dimension;++i) printf ("[%i,%i] ",this->_Ik[i].min,
                                                         this->_Ik[i].max);
@@ -359,11 +368,11 @@ void Polygon::updateMBR(){
              minY =  INF, 
              maxY = -INF;
 
-    for (int i=0; i<this->_data.size(); ++i){
-        if( minX > this->_data[i].x ) minX = this->_data[i].x;
-        if( maxX < this->_data[i].x ) maxX = this->_data[i].x;
-        if( minY > this->_data[i].y ) minY = this->_data[i].y;
-        if( maxY < this->_data[i].y ) maxY = this->_data[i].y;
+    for (int i=0; i<_data.size(); ++i){
+        if( minX > _data[i].x ) minX = _data[i].x;
+        if( maxX < _data[i].x ) maxX = _data[i].x;
+        if( minY > _data[i].y ) minY = _data[i].y;
+        if( maxY < _data[i].y ) maxY = _data[i].y;
     }
     this->_MBR = Rectangle( Interval(minX,maxX),Interval(minY,maxY) );
 }
@@ -377,8 +386,8 @@ void Polygon::updateMBR(){
  */
 bool Polygon::iswithin(Polygon &d){
     Rectangle *objMBR = d.getMBR();
-    for (int i=0; i<this->_data.size(); ++i){
-        if(  !objMBR->inRange( this->_data[i] )  ) return false;
+    for (int i=0; i<_data.size(); ++i){
+        if(  !objMBR->inRange(_data[i])  ) return false;
     }
     return true;
 }
@@ -411,7 +420,7 @@ bool Polygon::iswithin(Rectangle &d){
  * 
  */
 DataType Polygon::howMuchGrow(Rectangle *r){
-    Rectangle newR = this->_MBR.getJoin(r[0]);
+    Rectangle newR = this->_MBR.getJoin(r);
     return newR.area() - r->area();
 }
 
@@ -632,13 +641,21 @@ public:
 
     void printId(){
         if(_isleaf){
-            cout << "{";
+            Rectangle *MBR;
+            cout << "{ ";
             for(int i=0;i<_size-1;++i) {
                 std::string id = this->_childPoly[i].getId();
-                cout << id << ", ";
+                cout << id;
+                MBR = this->_childPoly[i].getMBR();
+                MBR[0].print(true);
+                cout << ", ";
             }
-            std::string id = this->_childPoly[_size-1].getId();
-            cout << id << "}" << endl;
+            int i = _size-1;
+            std::string id = this->_childPoly[i].getId();
+            cout << id;
+            MBR = this->_childPoly[i].getMBR();
+            MBR[0].print(true);
+            cout << " }" << endl;
         }
     }
 
@@ -669,23 +686,28 @@ public:
 void Node::add(Polygon &element){
     // Add to _children
     this->_childPoly[ this->_size ] = element;
-    ++this->_size;
+    this->_size++;
     
-    if(_size == 1){
+    if(_size < 2){
         Rectangle *elementMBR = element.getMBR();
-        this->_MBR = elementMBR[0];
+        //memcpy(&this->_MBR,elementMBR,sizeof(elementMBR));
+        std::copy(elementMBR,elementMBR+1,&this->_MBR);
+        //this->_MBR = elementMBR[0];
     }
     else
         this->_MBR.join(element.getMBR());
 }
 void Node::add(Node &element){
     // Add to _children
-    this->_childNode[ this->_size ] = element;
-    ++this->_size;
+    this->_childNode[ _size ] = element;
+    this->_size++;
 
-    if(_size == 1){
+    if(_size < 2){
         Rectangle *elementMBR = element.getMBR();
-        this->_MBR = elementMBR[0];
+        elementMBR->print(); //-------------------------------------------------------------------------------------
+        //memcpy(&this->_MBR,elementMBR,sizeof(elementMBR[0]));
+        std::copy(elementMBR,elementMBR+1,&this->_MBR);
+        //this->_MBR = elementMBR[0];
     }
     else
         this->_MBR.join(element.getMBR());
@@ -693,11 +715,14 @@ void Node::add(Node &element){
 void Node::add(Node *element){
     // Add to _children
     this->_childNode[ this->_size ] = element[0];
-    ++this->_size;
+    this->_size++;
 
     if(_size < 2){
         Rectangle *elementMBR = element[0].getMBR();
-        this->_MBR = elementMBR[0];
+        //elementMBR->print();
+        //memcpy(&this->_MBR,elementMBR,sizeof(elementMBR[0]));
+        std::copy(elementMBR,elementMBR+1,&this->_MBR);
+        //this->_MBR = elementMBR[0];
     }
     else
         this->_MBR.join(element[0].getMBR());
@@ -724,7 +749,7 @@ void* Node::search(Polygon *dat){
     // Si no es una hoja: Busca el mejor subnodo
     else{
         // Buscar si esta dentro de algun children
-        for(int i = 0; i<this->_size; ++i){
+        for(int i = 0; i<_size; ++i){
             if( dat->iswithin( this->_childNode[i].getMBR() ) )
                 return this->_childNode[i].search(dat);
         }
@@ -734,7 +759,7 @@ void* Node::search(Polygon *dat){
         DataType grow;
         DataType minGrow = INF;
         int idMinGrow;
-        for(int i = 0; i<this->_size; ++i){
+        for(int i = 0; i<_size; ++i){
             grow = dat->howMuchGrow( this->_childNode[i].getMBR() );
             if(minGrow>grow){
                 minGrow = grow;
@@ -828,8 +853,8 @@ Node* Node::split(){
         std::copy(_childPoly,_childPoly+_size,childSaved);
         size_t length = _size;
 
-        cout << "Nodo antes Split: ";
-        this->printId();
+        //cout << "Nodo antes Split: ";
+        //this->printId();
         
         // Sin datos
         this->_size = 0;
@@ -874,6 +899,7 @@ Node* Node::split(){
                 }
             }
         }
+        /*
         cout << endl;
         cout << "Nodo despues Split: ";
         this->printId();
@@ -881,7 +907,7 @@ Node* Node::split(){
         cout << "Nuevo nodo: ";
         childSplit.printId();
         cout << endl; 
-
+        */
         if(_isroot){
             this->toroot(false);
             Node *ptrNewRoot = new Node(_minEntries,_maxEntries,_dimension,false,true);
@@ -905,7 +931,7 @@ Node* Node::split(){
         // ---------------------------
         Node * childSaved = new Node[_maxEntries + 1];
         std::copy(_childNode,_childNode+_size,childSaved);
-        size_t length = this->_size;
+        size_t length = _size;
 
         // Sin datos
         this->_size = 0;
@@ -939,9 +965,6 @@ Node* Node::split(){
                 growL1 = childSaved[i].howMuchGrow( this     ->getMBR()  );
                 growL2 = childSaved[i].howMuchGrow( childSplit.getMBR()  );
 
-                cout << "Iteration " << i ;
-                cout << ". Grow L1: " << growL1 << ". Grow L2" << growL2 << endl;
-
                 if      (growL1<growL2) this     ->add(childSaved[i]);
                 else if (growL1>growL2) childSplit.add(childSaved[i]);
                 
@@ -956,7 +979,6 @@ Node* Node::split(){
         }
 
         if(_isroot){
-
             this->toroot(false);
             Node *ptrNewRoot = new Node(_minEntries,_maxEntries,_dimension,false,true);;
             ptrNewRoot->add(*this);
@@ -1097,7 +1119,7 @@ void Node::endsRectangles(Polygon* poly,size_t &length, int &extreme1, int &extr
             fusion = rect1->getJoin( rect2 );
             fusionArea = fusion.area();
 
-            printf("(%i,%i). Area: %i\n",i,j,fusionArea);
+            //printf("(%i,%i). Area: %i\n",i,j,fusionArea);
 
             if( maxArea<fusionArea ){
                 maxArea = fusionArea;
@@ -1265,6 +1287,27 @@ std::vector<Polygon> RTree::nearest(Polygon &element, unsigned int k){
 
 
 int main(int argc, char const *argv[]) {
+    /*
+    Interval a = Interval(2,4);
+    Interval b = Interval(6,10);
+
+    Interval c = a.getJoin(b);
+
+    cout << "A. Length: " << a.length() << "[" << a.min << "," << a.max << "]" << endl;
+    cout << "B. Length: " << b.length() << "[" << b.min << "," << b.max << "]" << endl;
+    cout << "C. Length: " << c.length() << "[" << c.min << "," << c.max << "]" << endl;
+    */
+   /*
+    Rectangle a = Rectangle(Interval(2,4),Interval(2,4));
+    Rectangle b = Rectangle(Interval(8,10),Interval(8,10));
+    
+    Rectangle c = a.getJoin(b);
+
+    cout << "A. Area: " << a.area() << endl;
+    cout << "B. Area: " << b.area() << endl;
+    cout << "C. Area: " << c.area() << endl;
+*/
+
     
     RTree arbolito(2,5,2);
 
@@ -1282,8 +1325,18 @@ int main(int argc, char const *argv[]) {
     Polygon pL = Polygon(P(12,15),"L");
 
     arbolito.insert(pA); cout << "A, ";
+
+    cout << endl;
+    arbolito.print();
+    cout << "----------------" << endl;
+
     arbolito.insert(pB); cout << "B, ";
     arbolito.insert(pC); cout << "C, ";
+
+    cout << endl;
+    arbolito.print();
+    cout << "----------------" << endl;
+
     arbolito.insert(pD); cout << "D, ";
     arbolito.insert(pE); cout << "E, ";
 
@@ -1306,7 +1359,7 @@ int main(int argc, char const *argv[]) {
     cout << endl;
 
     arbolito.print();
-
+    
 
     return 0;
 }
