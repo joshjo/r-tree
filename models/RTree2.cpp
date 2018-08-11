@@ -60,12 +60,12 @@ public:
     Rectangle(size_t dimension): _dimension(dimension){
         _Ik = new Interval [dimension];
     }
-    Rectangle(DataType minX, DataType maxX,DataType minY, DataType maxY){
+    Rectangle(DataType minX, DataType maxX,DataType minY, DataType maxY): _dimension(2){
         _Ik = new Interval [2];
         _Ik[0] = Interval(minX,maxX);
         _Ik[1] = Interval(minY,maxY);
     }
-    Rectangle(Interval x, Interval y){
+    Rectangle(Interval x, Interval y): _dimension(2){
         _Ik = new Interval [2];
         _Ik[0] = x;
         _Ik[1] = y;
@@ -79,6 +79,9 @@ public:
     bool inRange(Point<DataType> p);
     void join(Rectangle *rect);
     DataType area();
+    void reset(){
+
+    }
 
     bool isThereIntersectionWith(Rectangle &other);
     
@@ -257,8 +260,13 @@ std::vector<P> Rectangle::getEnds(){
  */
 void Rectangle::print(bool basic = false){
     if( !basic ) printf ("Rectangulo:\n");
-    for(int i=0;i<_dimension;++i) printf ("[%i,%i]\t",this->_Ik[i].min,
-                                                      this->_Ik[i].max);
+    printf ("(");
+    if(_dimension == 2)
+        printf ("[%i,%i]; [%i,%i]",_Ik[0].min,_Ik[1].min,_Ik[0].max,_Ik[1].max);
+    else
+        for(int i=0;i<_dimension;++i) printf ("[%i,%i] ",this->_Ik[i].min,
+                                                        this->_Ik[i].max);
+    printf (")");
     if( !basic ) printf ("\n\n");
 }
 
@@ -279,11 +287,11 @@ class Object
 {
 protected:
     Rectangle _MBR;
-    std::string identifier;
+    std::string _identifier;
 public:
     Rectangle* getMBR(){return &this->_MBR;};
     void printMBR(){
-        printf("Object %s:\n.......................\n",identifier.c_str());
+        printf("Object %s:\n.......................\n",_identifier.c_str());
         printf("MBR:\t");
         _MBR.print(true);
         printf("\n\n");
@@ -308,8 +316,19 @@ private:
     
 public:
     Polygon(){}
-    Polygon(std::vector< P > &data){ 
+    Polygon(std::vector< P > &data, std::string ID){ 
         _data = data;
+        _identifier = ID;
+        this->updateMBR();
+    }
+    Polygon(P &data, std::string ID){ 
+        _data.push_back(data);
+        _identifier = ID;
+        this->updateMBR();
+    }
+    Polygon(P data, std::string ID){ 
+        _data.push_back(data);
+        _identifier = ID;
         this->updateMBR();
     }
 
@@ -560,7 +579,7 @@ public:
         else        _childNode = new Node   [_maxEntries + 1];
     }
     
-/*
+/* 
  *  Basic operations
  */
     void* search(Polygon *dat);
@@ -586,6 +605,25 @@ public:
     std::vector<P> get_points();
 
     DataType howMuchGrow(Rectangle *r);
+
+    void print(int level = 0){
+        for(int i=0; i<level; ++i) cout << "***";
+        if(_isleaf){
+            cout << "Node leaf: ";
+            _MBR.print(true);
+            cout << ". Count: " << this->_size << endl;
+        }
+        else{
+            cout << "Node: ";
+            _MBR.print(true);
+            cout << ". Count: " << this->_size << endl;
+
+            int plusLevel = level + 1;
+            for(int i=0;i<this->_size;++i) {
+                this->_childNode[i].print(plusLevel);
+            }
+        }
+    }
 
 /*
  *  Operators
@@ -614,8 +652,12 @@ void Node::add(Polygon &element){
     // Add to _children
     this->_childPoly[ this->_size ] = element;
     ++this->_size;
-
-    if( this->_size < this->_maxEntries )
+    
+    if(_size == 1){
+        Rectangle *elementMBR = element.getMBR();
+        this->_MBR = elementMBR[0];
+    }
+    else
         this->_MBR.join(element.getMBR());
 }
 void Node::add(Node &element){
@@ -623,7 +665,11 @@ void Node::add(Node &element){
     this->_childNode[ this->_size ] = element;
     ++this->_size;
 
-    if( this->_size < this->_maxEntries )
+    if(_size == 1){
+        Rectangle *elementMBR = element.getMBR();
+        this->_MBR = elementMBR[0];
+    }
+    else
         this->_MBR.join(element.getMBR());
 }
 void Node::add(Node *element){
@@ -631,7 +677,11 @@ void Node::add(Node *element){
     this->_childNode[ this->_size ] = element[0];
     ++this->_size;
 
-    if( this->_size < this->_maxEntries )
+    if(_size == 1){
+        Rectangle *elementMBR = element[0].getMBR();
+        this->_MBR = elementMBR[0];
+    }
+    else
         this->_MBR.join(element[0].getMBR());
 }
 
@@ -690,7 +740,7 @@ void* Node::search(Polygon *dat){
 Node* Node::insert(Polygon &dat){
     // Nodo hijo obtenido de un split 
     Node *childSplit = NULL;
-
+    
     // Si es hoja, agrega el elemento a _childPoly.
     if (this->_isleaf){
         this->add( dat );
@@ -701,13 +751,14 @@ Node* Node::insert(Polygon &dat){
         int i = 0;
         
         // Buscar hijo donde insertar
-        // Primero: Nodo en donde entra
+        // Primero: Nodo en donde entra (apropiado)
         while( i<_size && !allocated ){
             // Verifica si dat está dentro del MBR de nodo hijo
             if ( dat.iswithin( this->_childNode[i].getMBR() ) ){
                 childSplit = this->_childNode[i].insert( dat );
                 allocated = true;
             }
+            ++i;
         }
 
         // Segundo: Nodo mas cercano
@@ -730,9 +781,8 @@ Node* Node::insert(Polygon &dat){
     if( childSplit!=NULL ){
         this->add( childSplit );
     }
-
     // Si se llena el nodo: Split!
-    if (_size == _maxEntries) return this->split();
+    if (_size == _maxEntries+1) return this->split();
     else                      return NULL;
 }
 
@@ -745,6 +795,9 @@ Node* Node::split(){
     int extreme1, extreme2;
     DataType growL1, growL2;
     
+    cout << endl;
+    cout << "SPLIT!!!" << endl;
+
     /*
         Rutina para hojas
         .................
@@ -755,23 +808,92 @@ Node* Node::split(){
         // ---------------------------
         Polygon * childSaved = new Polygon[_maxEntries + 1];
         std::copy(_childPoly,_childPoly+_size,childSaved);
+        size_t length = _size;
+
+        // Sin datos
+        this->_size = 0;
+        
+        //
+        // Buscar hijos extremos
+        // ---------------------------
+        endsRectangles(childSaved,length, extreme1, extreme2);
+        
+        //
+        // Salvar datos
+        // ---------------------------
+        //this->_MBR = Rectangle(_dimension);
+        Node childSplit = Node(_minEntries,_maxEntries,_dimension,_isleaf,_isroot);
+        this     ->add(childSaved[extreme1]);   // L1
+        childSplit.add(childSaved[extreme2]);   // L2
+
+        for(int i=0; i<length; ++i){
+            if(i!=extreme1 && i!=extreme2 ){
+                // PASO 0: Si algun nodo se queda vacio
+                if( this     ->_size     == _maxEntries-_minEntries+1 )
+                    childSplit.add(childSaved[i]);
+                if( childSplit.getSize() == _maxEntries-_minEntries+1 )
+                    this     ->add(childSaved[i]);
+                
+                // PASO 1: Menor crecimiento de nodos
+                growL1 = childSaved[i].howMuchGrow( this     ->getMBR()  );
+                growL2 = childSaved[i].howMuchGrow( childSplit.getMBR()  );
+
+                if      (growL1<growL2) this     ->add(childSaved[i]);
+                else if (growL1>growL2) childSplit.add(childSaved[i]);
+                
+                // PASO 2: Menor cantidad de elementos
+                else{
+                    if( _size < childSplit.getSize() )
+                        this     ->add(childSaved[i]);
+                    else
+                        childSplit.add(childSaved[i]);
+                }
+            }
+        }
+        
+        if(_isroot){
+            this->toroot(false);
+            Node *ptrNewRoot = new Node(_minEntries,_maxEntries,_dimension,false,true);
+
+            ptrNewRoot->add(*this);
+            ptrNewRoot->add(childSplit);
+            return ptrNewRoot;
+        }
+
+        Node *ptrChildSplit = &childSplit;
+        return ptrChildSplit;
+    }
+
+    /*
+        Rutina para nodos no hojas
+        ..........................
+     */
+    else{
+        //
+        // Salvar datos
+        // ---------------------------
+        Node * childSaved = new Node[_maxEntries + 1];
+        std::copy(_childNode,_childNode+_size,childSaved);
         size_t length = this->_size;
 
         // Sin datos
         this->_size = 0;
-
+        
         //
         // Buscar hijos extremos
         // ---------------------------
-        endsRectangles(childSaved,_size, extreme1, extreme2);
-
+        endsRectangles(childSaved,length, extreme1, extreme2);
+        
         //
         // Salvar datos
         // ---------------------------
         Node childSplit = Node(_minEntries,_maxEntries,_dimension,_isleaf,_isroot);
         this     ->add(childSaved[extreme1]);   // L1
+        Rectangle* a = childSaved[extreme1].getMBR();
+        this->_MBR = a[0];
         childSplit.add(childSaved[extreme2]);   // L2
         
+
         for(int i=0; i<length; ++i){
             if(i!=extreme1 && i!=extreme2 ){
                 // PASO 0: Si algun nodo se queda vacio
@@ -797,63 +919,14 @@ Node* Node::split(){
             }
         }
 
+        if(_isroot){
 
-        Node *ptrChildSplit = &childSplit;
-        
-        return ptrChildSplit;
-    }
+            this->toroot(false);
+            Node *ptrNewRoot = new Node(_minEntries,_maxEntries,_dimension,false,true);;
+            ptrNewRoot->add(*this);
+            ptrNewRoot->add(childSplit);
 
-    /*
-        Rutina para nodos no hojas
-        ..........................
-     */
-    else{
-        //
-        // Salvar datos
-        // ---------------------------
-        Node * childSaved = new Node[_maxEntries + 1];
-        std::copy(_childNode,_childNode+_size,childSaved);
-        size_t length = this->_size;
-
-        // Sin datos
-        this->_size = 0;
-
-        //
-        // Buscar hijos extremos
-        // ---------------------------
-        endsRectangles(childSaved,_size, extreme1, extreme2);
-
-        
-        //
-        // Salvar datos
-        // ---------------------------
-        Node childSplit = Node(_minEntries,_maxEntries,_dimension,_isleaf,_isroot);
-        this     ->add(childSaved[extreme1]);   // L1
-        childSplit.add(childSaved[extreme2]);   // L2
-        
-        for(int i=0; i<length; ++i){
-            if(i!=extreme1 && i!=extreme2 ){
-                // PASO 0: Si algun nodo se queda vacio
-                if( this     ->_size     == _maxEntries-_minEntries )
-                    childSplit.add(childSaved[i]);
-                if( childSplit.getSize() == _maxEntries-_minEntries )
-                    this     ->add(childSaved[i]);
-
-                // PASO 1: Menor crecimiento de nodos
-                growL1 = childSaved[i].howMuchGrow( this     ->getMBR()  );
-                growL2 = childSaved[i].howMuchGrow( childSplit.getMBR()  );
-
-                if      (growL1<growL2) this     ->add(childSaved[i]);
-                else if (growL1>growL2) childSplit.add(childSaved[i]);
-                
-                // PASO 2: Menor cantidad de elementos
-                else{
-                    if( this->_size < childSplit.getSize() )
-                        this     ->add(childSaved[i]);
-                    else
-                        childSplit.add(childSaved[i]);
-                }
-            }
+            return ptrNewRoot;
         }
 
         Node *ptrChildSplit = &childSplit;
@@ -1047,12 +1120,23 @@ public:
  *  Basic operations
  */
     bool  insert(Polygon &dat);
-    //void* search(Polygon &dat):
+    //Node* search(Polygon *dat):
+    void print(){
+        if (_root == NULL){
+            cout << "No hay nada :c" << endl;
+        }
+        else if(_root->isleaf()){
+            _root->print();
+        }
+        else{
+            _root->print();
+        }
+    }
+
 
 /*
  *  Query operations
  */
-
     std::vector<Polygon> range(Rectangle &region);
     std::vector<Polygon> nearest(Polygon &element, unsigned int k);
 };
@@ -1068,10 +1152,14 @@ bool RTree::insert(Polygon &dat){
     // Si esta vacio
     if (_root == NULL){
         _root = new Node(_minEntries,_maxEntries,_dimension,true,true);
+        _root->insert(dat);
     }
     // Si no esta vacio
     else{
-        _root->insert(dat);
+        Node *newRoot;
+        newRoot = _root->insert(dat);
+
+        if( newRoot!=NULL ) _root = newRoot;
     }
 }
 
@@ -1084,8 +1172,11 @@ bool RTree::insert(Polygon &dat){
  * 
  */
 /*
-void* RTree::search(Polygon *dat){
-    return (_root == NULL)? NULL : _root->search(dat);
+Node* RTree::search(Polygon *dat){
+    if (_root == NULL)
+        return NULL;
+    else
+        _root->search(dat);
 }
 */
 
@@ -1125,31 +1216,38 @@ std::vector<Polygon> RTree::nearest(Polygon &element, unsigned int k){
 
 
 int main(int argc, char const *argv[]) {
-    RTree a(2,5,2);
     
-    P(535,324);
-    P(535,324);
-    P(535,324);
-    P(535,324);
+    RTree arbolito(2,5,2);
 
-/*
-[535,324],
-[89,524],
-[1108,283],
-[1003,96],
-[288,89],
-[364,786],
-[1172,575],
-[1377,166],
-[1172,63],
-[661,504],
-[260,323],
-[69,216],
-[452,633],
-[800,183],
-*/
+    Polygon pA = Polygon(P( 5, 5),"A");
+    Polygon pB = Polygon(P( 3, 2),"B");
+    Polygon pC = Polygon(P(20, 5),"C");
+    Polygon pD = Polygon(P( 8, 3),"D");
+    Polygon pE = Polygon(P(10,15),"E");
+    Polygon pF = Polygon(P(18,19),"F");
+    Polygon pG = Polygon(P( 3, 4),"G");
+    Polygon pH = Polygon(P( 4, 5),"H");
+    Polygon pI = Polygon(P( 5, 3),"I");
+    Polygon pJ = Polygon(P(10, 5),"J");
+    Polygon pK = Polygon(P(11,13),"K");
+    Polygon pL = Polygon(P(12,15),"L");
 
-    std::cout << ":c" << std::endl;
+    arbolito.insert(pA); cout << "A, ";
+    arbolito.insert(pB); cout << "B, ";
+    arbolito.insert(pC); cout << "C, ";
+    arbolito.insert(pD); cout << "D, ";
+    arbolito.insert(pE); cout << "E, ";
+    arbolito.insert(pF); cout << "F, ";
+    arbolito.insert(pG); cout << "G, ";
+    arbolito.insert(pH); cout << "H, ";
+    arbolito.insert(pI); cout << "I, ";
+    arbolito.insert(pJ); cout << "J, ";
+    arbolito.insert(pK); cout << "K, ";
+    arbolito.insert(pL); cout << "L" << endl;
+    cout << endl;
+
+    arbolito.print();
+
 
     return 0;
 }
