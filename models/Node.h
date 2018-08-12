@@ -109,7 +109,7 @@ class Node
             float minDistance = std::numeric_limits<T>::max();
             for (size_t i = 0; i < count; i += 1) {
                 for (size_t j = i + 1; j < count; j += 1) {
-                    float newDistance = children[i]->rectangle->getDistance(*children[j]->rectangle);
+                    float newDistance = children[i]->rectangle->getDistance(*(children[j]->rectangle));
                     if (newDistance < minDistance) {
                         minDistance = newDistance;
                         a = i;
