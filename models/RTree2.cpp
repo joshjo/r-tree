@@ -680,14 +680,14 @@ public:
                 std::string id = this->_childPoly[i].getId();
                 cout << id;
                 MBR = this->_childPoly[i].getMBR();
-                MBR[0].print(true);
+                //MBR[0].print(true);
                 cout << ", ";
             }
             int i = _size-1;
             std::string id = this->_childPoly[i].getId();
             cout << id;
             MBR = this->_childPoly[i].getMBR();
-            MBR[0].print(true);
+            //+MBR[0].print(true);
             cout << " }" << endl;
         }
     }
@@ -891,9 +891,6 @@ Node* Node::split(){
         std::copy(_childPoly,_childPoly+_size,childSaved);
         size_t length = _size;
 
-        //cout << "Nodo antes Split: ";
-        //this->printId();
-        
         // Sin datos
         this->_size = 0;
         
@@ -937,15 +934,7 @@ Node* Node::split(){
                 }
             }
         }
-        /*
-        cout << endl;
-        cout << "Nodo despues Split: ";
-        this->printId();
-        
-        cout << "Nuevo nodo: ";
-        childSplit.printId();
-        cout << endl; 
-        */
+
         if(_isroot){
             this->toroot(false);
             Node *ptrNewRoot = new Node(_minEntries,_maxEntries,_dimension,false,true);
@@ -993,16 +982,15 @@ Node* Node::split(){
                     childSplit.add(childSaved[i]);
                     break;
                 }
-                    
                 if( childSplit.getSize() == _maxEntries-_minEntries + 1 ){
                     this     ->add(childSaved[i]);
                     break;
                 }
-
+                
                 // PASO 1: Menor crecimiento de nodos
                 growL1 = childSaved[i].howMuchGrow( this     ->getMBR()  );
                 growL2 = childSaved[i].howMuchGrow( childSplit.getMBR()  );
-
+                
                 if      (growL1<growL2) this     ->add(childSaved[i]);
                 else if (growL1>growL2) childSplit.add(childSaved[i]);
                 
@@ -1018,15 +1006,14 @@ Node* Node::split(){
 
         if(_isroot){
             this->toroot(false);
-            Node *ptrNewRoot = new Node(_minEntries,_maxEntries,_dimension,false,true);;
+            Node *ptrNewRoot = new Node(_minEntries,_maxEntries,_dimension,false,true);
+
             ptrNewRoot->add(*this);
             ptrNewRoot->add(childSplit);
-
             return ptrNewRoot;
         }
 
         Node *ptrChildSplit = &childSplit;
-        
         return ptrChildSplit;
     }
 }
@@ -1132,11 +1119,8 @@ void Node::endsRectangles(Rectangle* rects,size_t &length, int &extreme1, int &e
 
     for(int i=0; i<length-1; ++i){
         for(int j = i+1; j<length;++j){
-            
             fusion = rects[i].getJoin( rects[j] );
             fusionArea = fusion.area();
-
-            //printf("(%i,%i). Area: %i\n",i,j,fusionArea);
 
             if( maxArea<fusionArea ){
                 maxArea = fusionArea;
@@ -1145,39 +1129,23 @@ void Node::endsRectangles(Rectangle* rects,size_t &length, int &extreme1, int &e
             }
         }
     }
-
-    //printf("Extrem: (%i,%i)\n",extreme1,extreme2);
 }
 void Node::endsRectangles(Polygon* poly,size_t &length, int &extreme1, int &extreme2){
     Rectangle fusion;
-    /*
-    DataType maxArea = -INF;
-    DataType fusionArea;
-    */
     DataType maxDistance = -INF;
     DataType distance;
-    //Rectangle *rect1, *rect2;
-
+    
     for(int i=0; i<length-1; ++i){
         for(int j = i+1; j<length;++j){
             distance = poly[i].distanceTo( poly[j] );
-            /*
-            rect1 = poly[i].getMBR();
-            rect2 = poly[j].getMBR();
-            fusion = rect1->getJoin( rect2 );
-            fusionArea = fusion.area();
 
-            printf("(%i,%i). Area: %i\n",i,j,fusionArea);
-            */
             if( maxDistance<distance ){
                 maxDistance = distance;
                 extreme1 = i;
                 extreme2 = j;
             }
-            
         }
     }
-    //printf("Extrem: (%i,%i)\n",extreme1,extreme2);
 }
 void Node::endsRectangles(Node* nodo,size_t &length, int &extreme1, int &extreme2){
     Rectangle fusion;
@@ -1192,8 +1160,6 @@ void Node::endsRectangles(Node* nodo,size_t &length, int &extreme1, int &extreme
             fusion = rect1->getJoin( rect2 );
             fusionArea = fusion.area();
 
-            //printf("(%i,%i). Area: %i\n",i,j,fusionArea);
-
             if( maxArea<fusionArea ){
                 maxArea = fusionArea;
                 extreme1 = i;
@@ -1201,9 +1167,7 @@ void Node::endsRectangles(Node* nodo,size_t &length, int &extreme1, int &extreme
             }
         }
     }
-    //printf("Extrem: (%i,%i)\n",extreme1,extreme2);
 }
-
 
 
 
@@ -1336,95 +1300,59 @@ std::vector<Polygon> RTree::nearest(Polygon &element, unsigned int k){
 
 
 int main(int argc, char const *argv[]) {
-    /*
-    Interval a = Interval(2,4);
-    Interval b = Interval(6,10);
-
-    Interval c = a.getJoin(b);
-
-    cout << "A. Length: " << a.length() << "[" << a.min << "," << a.max << "]" << endl;
-    cout << "B. Length: " << b.length() << "[" << b.min << "," << b.max << "]" << endl;
-    cout << "C. Length: " << c.length() << "[" << c.min << "," << c.max << "]" << endl;
-    */
-   /*
-    Rectangle a = Rectangle(Interval(2,4),Interval(2,4));
-    Rectangle b = Rectangle(Interval(8,10),Interval(8,10));
-    
-    Rectangle c = a.getJoin(b);
-
-    cout << "A. Area: " << a.area() << endl;
-    cout << "B. Area: " << b.area() << endl;
-    cout << "C. Area: " << c.area() << endl;
-*/
-
-    
     RTree arbolito(2,5,2);
 
-    Polygon pA = Polygon(P( 5, 5),"A");
-    Polygon pB = Polygon(P( 3, 2),"B");
-    Polygon pC = Polygon(P(20, 5),"C");
-    Polygon pD = Polygon(P( 8, 3),"D");
-    Polygon pE = Polygon(P(10,15),"E");
-    Polygon pF = Polygon(P(18,19),"F");
-    Polygon pG = Polygon(P( 3, 4),"G");
-    Polygon pH = Polygon(P( 4, 5),"H");
-    Polygon pI = Polygon(P( 5, 3),"I");
-    Polygon pJ = Polygon(P(10, 5),"J");
-    Polygon pK = Polygon(P(11, 8),"K");
-    Polygon pL = Polygon(P(12,10),"L");
-    Polygon pM = Polygon(P( 6,11),"M");
+    Polygon pB = Polygon(P( 414,214),"B");
+    Polygon pC = Polygon(P( 389,381),"C");
+    Polygon pD = Polygon(P( 810,516),"D");
+    Polygon pE = Polygon(P( 819,188),"E");
+    Polygon pF = Polygon(P( 545,380),"F");
+    Polygon pG = Polygon(P( 284,410),"G");
+    Polygon pH = Polygon(P( 620,634),"H");
+    Polygon pI = Polygon(P( 934,428),"I");
+    Polygon pJ = Polygon(P( 480,446),"J");
+    Polygon pK = Polygon(P( 713,583),"K");
+    Polygon pL = Polygon(P(1130,453),"L");
+    Polygon pM = Polygon(P( 707,257),"M");
+    Polygon pN = Polygon(P( 624,353),"N");
+    Polygon pO = Polygon(P( 474,480),"O");
+    Polygon pP = Polygon(P( 745,618),"P");
+    Polygon pQ = Polygon(P( 897,484),"Q");
+    Polygon pR = Polygon(P( 668,222),"R");
 
-    Rectangle *rA = pA.getMBR();
-    rA->print();
-    arbolito.insert(pA); cout << "Entra A..., ";
-/*
-    cout << endl;
-    arbolito.print();
-    cout << "----------------" << endl;
-*/
     arbolito.insert(pB); cout << "Entra B..., ";
-  /*  
-    cout << endl;
-    arbolito.print();
-    cout << "HGJ --------" << endl;
-    rA->print();
-    cout << "----------------" << endl;
-*/
     arbolito.insert(pC); cout << "Entra C..., ";
     arbolito.insert(pD); cout << "Entra D..., ";
     arbolito.insert(pE); cout << "Entra E..., ";
-
-    cout << endl;
-    arbolito.print();
-    cout << "----------------" << endl;
-
     arbolito.insert(pF); cout << "Entra F..., ";
-
-    cout << endl;
-    arbolito.print();
-    cout << "----------------" << endl;
-
     arbolito.insert(pG); cout << "Entra G..., ";
-
-    cout << endl;
-    arbolito.print();
-    cout << "----------------" << endl;
-
     arbolito.insert(pH); cout << "Entra H..., ";
 
     cout << endl;
     arbolito.print();
-    cout << "----------------" << endl;
-
-    arbolito.insert(pI); cout << "Entra I..., ";
-    arbolito.insert(pJ); cout << "Entra J..., ";
-    arbolito.insert(pK); cout << "Entra K..., ";
-    arbolito.insert(pL); cout << "Entra L...  ";
-    arbolito.insert(pM); cout << "Entra M..." << endl;
     cout << endl;
 
-    arbolito.print();
+    arbolito.insert(pI); cout << "Entra I..., ";
     
+    cout << endl;
+    arbolito.print();
+    cout << endl;
+    
+    /*
+    arbolito.insert(pJ); cout << "Entra J..., ";
+    arbolito.insert(pK); cout << "Entra K..., ";
+    arbolito.insert(pL); cout << "Entra L..., ";
+    arbolito.insert(pM); cout << "Entra M..., ";
+    arbolito.insert(pN); cout << "Entra N..., ";
+    arbolito.insert(pO); cout << "Entra O..., ";
+    arbolito.insert(pP); cout << "Entra P..., ";
+    arbolito.insert(pQ); cout << "Entra Q..." << endl;
+    */
+//    arbolito.insert(pR); cout << "Entra R..." << endl;
+    /*
+    cout << endl;
+    arbolito.print();
+    */
 
     return 0;
 }
