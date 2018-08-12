@@ -132,9 +132,9 @@ class Polygon
             } else if (p.y > ty) {
                 ry = ty;
             }
+
             return pow(abs(p.x - rx), 2) + pow(abs(p.y - ry), 2);
         }
-
         vector<P> get_box() {
             vector<P> points(4);
             points[0] = P(min.x, min.y);

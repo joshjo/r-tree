@@ -161,6 +161,7 @@ draw.click((e) => {
       lastPoint.animate(100).move(e.offsetX - 5, e.offsetY - 5);
     }
     const point = [e.offsetX, e.offsetY];
+    console.log('point', point);
     api.post("", {
       polygon: [point],
     }).then((d) => {
