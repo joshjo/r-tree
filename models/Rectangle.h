@@ -5,14 +5,13 @@
 
 template <class T> class RTree;
 template <class T> class Node;
-template <class T>
-class Point;
+template <class T> class Point;
 template <class T>
 class Rectangle
 {
 	typedef Point<T> P;
     private:
-        int identifier;
+        int id;
         P min = P();
         P max = P();
     public:
@@ -31,15 +30,45 @@ class Rectangle
             return points;
         }
         int get_id() {
-            return identifier;
+            return id;
         }
         Rectangle(){}
-        Rectangle(P pMin, P pMax, int identifier)
+        Rectangle(P pMin, P pMax, int id)
         {
             this->min = pMin;
             this->max = pMax;
-            this->identifier = identifier;
+            this->id = id;
         }
+
+        bool isInside(Rectangle<T> & other) {
+            return (
+                (min.x <= other.min.x) &&
+                (min.y <= other.min.y) &&
+                (max.x >= other.max.x) &&
+                (max.y >= other.max.y)
+            );
+        }
+
+        float getDistance(Polygon<T> & other) {
+            vector<P> thisbox = this->get_box();
+            vector<P> otherbox = other.get_box();
+
+            float minDistance = std::numeric_limits<T>::max();
+            for(auto pointBox1 : thisbox)
+            {
+                for(auto pointBox2 : otherbox)
+                {
+                    float distance = sqrt(pow(pointBox1.x-pointBox2.x,2) + pow(pointBox1.y-pointBox2.y,2));
+                    if(minDistance > distance)
+                    {
+                        minDistance = distance;
+                    }
+                }
+            }
+            return minDistance;
+        }
+
+
     friend class RTree<T>;
     friend class Node<T>;
 };

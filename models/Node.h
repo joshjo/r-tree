@@ -10,31 +10,113 @@ template <class T>
 class Node
 {
 	typedef Point<T> P;
+    typedef Node<T> N;
+    typedef Polygon<T> Poly;
+    typedef Rectangle<T> Box;
     private:
         int count;
-        int maxEntries;
-        Rectangle<T> *rectangle;
-        Node<T> **children;
-        Node<T> *father;
-        Polygon<T> *polygons;
+        int M;
+        N * parent;
+        N ** children;
+        Poly ** polygons;
+        Box * rectangle;
         bool leaf;
-        bool intermediate;
+        int id;
 
 	public:
         Node(){}
-        Node(int maxEntries, int identifier)
+        Node(int M, int id, bool leaf = true)
         {
             this->count = 0;
-            this->father = 0;
-            this->maxEntries = maxEntries;
+            this->parent = 0;
+            this->M = M;
+            this->id = id;
             T inf = std::numeric_limits<T>::max();
             P min(inf,inf);
             P max(-inf,-inf);
-            this->rectangle = new Rectangle<T>(min, max, identifier);
-            this->children = new Node<T>*[maxEntries];
-            this->polygons = new Polygon<T>[maxEntries];
-            this->leaf = true;
-            this->intermediate = false;
+            this->rectangle = new Box(min, max, id);
+            this->children = new N * [M + 1];
+            this->polygons = new Poly * [M + 1];
+            this->leaf = leaf;
+        }
+
+        void updateRectangle() {
+            if (leaf) {
+                for (size_t i = 0; i < count; i += 1) {
+                    if (polygons[i]->min.x < rectangle->min.x) {
+                        rectangle->min.x = polygons[i]->min.x;
+                    }
+                    if (polygons[i]->min.y < rectangle->min.y) {
+                        rectangle->min.y = polygons[i]->min.y;
+                    }
+                    if (polygons[i]->max.x > rectangle->max.x) {
+                        rectangle->max.x = polygons[i]->max.x;
+                    }
+                    if (polygons[i]->max.y > rectangle->max.y) {
+                        rectangle->max.y = polygons[i]->max.y;
+                    }
+                }
+            } else {
+                for (size_t i = 0; i < count; i += 1) {
+                    if (children[i]->rectangle->min.x < rectangle->min.x) {
+                        rectangle->min.x = children[i]->rectangle->min.x;
+                    }
+                    if (children[i]->rectangle->min.y < rectangle->min.y) {
+                        rectangle->min.y = children[i]->rectangle->min.y;
+                    }
+                    if (children[i]->rectangle->max.x > rectangle->max.x) {
+                        rectangle->max.x = children[i]->rectangle->max.x;
+                    }
+                    if (children[i]->rectangle->max.y > rectangle->max.y) {
+                        rectangle->max.y = children[i]->rectangle->max.y;
+                    }
+                }
+            }
+        }
+
+        int addChildren(Node * child) {
+            int index = this->count;
+            this->children[index] = child;
+            this->count += 1;
+            return index;
+        }
+
+        int addPolygon(Poly * polygon) {
+            // CHeck if the count works together children with polygons
+            // Technically if the node is a leaf, then the node should contain
+            // only leaves.
+            int index = this->count;
+            this->polygons[index] = polygon;
+            this->count += 1;
+            return index;
+        }
+
+        void getFartherPolygons(int & a, int & b) {
+            float minDistance = std::numeric_limits<T>::max();
+            for (size_t i = 0; i < count; i += 1) {
+                for (size_t j = i + 1; j < count; j += 1) {
+                    float newDistance = polygons[i]->getDistance(*polygons[j]);
+                    if (newDistance < minDistance) {
+                        minDistance = newDistance;
+                        a = i;
+                        b = j;
+                    }
+                }
+            }
+        }
+
+        void getFartherChildren(int & a, int & b) {
+            float minDistance = std::numeric_limits<T>::max();
+            for (size_t i = 0; i < count; i += 1) {
+                for (size_t j = i + 1; j < count; j += 1) {
+                    float newDistance = children[i]->rectangle->getDistance(*children[j]->rectangle);
+                    if (newDistance < minDistance) {
+                        minDistance = newDistance;
+                        a = i;
+                        b = j;
+                    }
+                }
+            }
         }
 
         vector<Node<T>* > getChildrenVector() {
@@ -77,7 +159,7 @@ class Node
             return count;
         }
 
-        Polygon<T>* get_polygons() {
+        Poly* get_polygons() {
             return polygons;
         }
 
@@ -85,75 +167,75 @@ class Node
             return rectangle;
         }
 
-    bool isInsideRectangle(Polygon<T> *polygon)
-    {
-        return(rectangle->min.x <= polygon->points[0].x &&
-        polygon->points[0].x <= rectangle->max.x &&
-        rectangle->min.x <= polygon->points[0].y &&
-        polygon->points[0].y <= rectangle->max.y
-        );
-    }
+        // bool isInsideRectangle(Node<T> *node)
+        // {
+        //     return(rectangle->min.x <= node->re->points[0].x &&
+        //     polygon->points[0].x <= rectangle->max.x &&
+        //     rectangle->min.x <= polygon->points[0].y &&
+        //     polygon->points[0].y <= rectangle->max.y
+        //     );
+        // }
 
-    //float getDistace()
-    //distance = sqrt(pow((x1 - x2),2) +pow((y1 - y2),2));
-    float getArea()
-    {
-        return ((rectangle->max.x - rectangle->min.x)*(rectangle->max.y - rectangle->min.y));
-    }
+    // //float getDistace()
+    // //distance = sqrt(pow((x1 - x2),2) +pow((y1 - y2),2));
+    // float getArea()
+    // {
+    //     return ((rectangle->max.x - rectangle->min.x)*(rectangle->max.y - rectangle->min.y));
+    // }
 
-    float getSimulatedArea(Polygon<T> * polygon)
-    {
-        P min = rectangle->min;
-        P max = rectangle->max;
+    // float getSimulatedArea(Polygon<T> * polygon)
+    // {
+    //     P min = rectangle->min;
+    //     P max = rectangle->max;
 
-        if(polygon->points[0].x < rectangle->min.x)
-            rectangle->min.x = polygon->points[0].x;
+    //     if(polygon->points[0].x < rectangle->min.x)
+    //         rectangle->min.x = polygon->points[0].x;
 
-        if(polygon->points[0].x > rectangle->max.x)
-            rectangle->max.x = polygon->points[0].x;
+    //     if(polygon->points[0].x > rectangle->max.x)
+    //         rectangle->max.x = polygon->points[0].x;
 
-        if(polygon->points[0].y < rectangle->min.y)
-            rectangle->min.y = polygon->points[0].y;
+    //     if(polygon->points[0].y < rectangle->min.y)
+    //         rectangle->min.y = polygon->points[0].y;
 
-        if(polygon->points[0].y > rectangle->max.y)
-            rectangle->max.y = polygon->points[0].y;
+    //     if(polygon->points[0].y > rectangle->max.y)
+    //         rectangle->max.y = polygon->points[0].y;
 
-        float area = getArea();
+    //     float area = getArea();
 
-        rectangle->min = min;
-        rectangle->max = max;
+    //     rectangle->min = min;
+    //     rectangle->max = max;
 
-        return area;
-    }
+    //     return area;
+    // }
 
-    float getSimulatedArea(Node<T> * node)
-    {
-        float minX = rectangle->min.x;
-        float maxX = rectangle->max.x;
-        float minY = rectangle->min.y;
-        float maxY = rectangle->max.y;
+    // float getSimulatedArea(Node<T> * node)
+    // {
+    //     float minX = rectangle->min.x;
+    //     float maxX = rectangle->max.x;
+    //     float minY = rectangle->min.y;
+    //     float maxY = rectangle->max.y;
 
-        if(node->rectangle->min.x < rectangle->min.x)
-            rectangle->min.x = node->rectangle->min.x;
+    //     if(node->rectangle->min.x < rectangle->min.x)
+    //         rectangle->min.x = node->rectangle->min.x;
 
-        if(node->rectangle->max.x > rectangle->max.x)
-            rectangle->max.x = node->rectangle->max.x;
+    //     if(node->rectangle->max.x > rectangle->max.x)
+    //         rectangle->max.x = node->rectangle->max.x;
 
-        if(node->rectangle->min.y < rectangle->min.y)
-            rectangle->min.y = node->rectangle->min.y;
+    //     if(node->rectangle->min.y < rectangle->min.y)
+    //         rectangle->min.y = node->rectangle->min.y;
 
-        if(node->rectangle->max.y > rectangle->max.y)
-            rectangle->max.y = node->rectangle->max.y;
+    //     if(node->rectangle->max.y > rectangle->max.y)
+    //         rectangle->max.y = node->rectangle->max.y;
 
-        float area = getArea();
+    //     float area = getArea();
 
-        rectangle->min.x = minX;
-        rectangle->max.x = maxX;
-        rectangle->min.y = minY;
-        rectangle->max.y = maxY;
+    //     rectangle->min.x = minX;
+    //     rectangle->max.x = maxX;
+    //     rectangle->min.y = minY;
+    //     rectangle->max.y = maxY;
 
-        return area;
-    }
+    //     return area;
+    // }
 
     friend class RTree<T>;
 };

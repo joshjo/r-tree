@@ -36,6 +36,8 @@ class RTree
         bool firstTime;
         int identifier;
 
+        bool shouldPrintLog;
+
     public:
         RTree(){}
         RTree(int minEntries, int maxEntries)
@@ -47,6 +49,7 @@ class RTree
             this->maxEntries = maxEntries;
             this->treeLevel = 0;
             this->firstTime = true;
+            this->shouldPrintLog = false;
         }
 
     void updateRectangle(Node<T> *node, Polygon<T> *polygon)
@@ -165,21 +168,46 @@ class RTree
         node->polygons[pos2].intermediate = true;
     }
 
-    void fillExtremeNodes(Node<T> *node, Node<T> *firstHalfNode, Node<T> *secondHalfNode)
-    {
+    void fillExtremeNodes(
+        Node<T> *node,
+        Node<T> *firstHalfNode,
+        Node<T> *secondHalfNode
+    ) {
         Polygon<T> *firstExtremePolygon = new Polygon<T>();
         Polygon<T> *secondExtremePolygon = new Polygon<T>();
         getExtremesPolygons(node, firstExtremePolygon, secondExtremePolygon);
 
-        firstHalfNode->polygons[firstHalfNode->count] = firstExtremePolygon->copy();//*firstExtremePolygon;
+        if (shouldPrintLog) {
+            cout << "Extremes: " << firstExtremePolygon->identifier << " == " << secondExtremePolygon->identifier << endl;
+        }
+
+        Polygon<T> * tmp = firstExtremePolygon;
+        if (shouldPrintLog) {
+            cout << "polygon" << tmp->identifier << endl;
+            tmp->min.print();
+            tmp->max.print();
+            cout << endl << "====" << endl;
+            tmp = secondExtremePolygon;
+            cout << "polygon" << tmp->identifier << endl;
+            tmp->min.print();
+            tmp->max.print();
+            cout << endl << "====" << endl;
+        }
+
+        firstHalfNode->polygons[0] = firstExtremePolygon->copy();//*firstExtremePolygon;
         firstHalfNode->count++;
 //        firstHalfNode->father = node->father;
-        updateRectangle(firstHalfNode, firstExtremePolygon);
+        // updateRectangle(firstHalfNode, firstExtremePolygon);
 
-        secondHalfNode->polygons[secondHalfNode->count] = secondExtremePolygon->copy();//*secondExtremePolygon;
+        secondHalfNode->polygons[0] = secondExtremePolygon->copy();//*secondExtremePolygon;
         secondHalfNode->count++;
   //      secondHalfNode->father = node->father;
-        updateRectangle(secondHalfNode, secondExtremePolygon);
+        // updateRectangle(secondHalfNode, secondExtremePolygon);
+
+        Node<T> * nodeTmp = secondHalfNode;
+        if (shouldPrintLog) {
+            cout << nodeTmp->rectangle->min.to_string() << endl;
+        }
 
     }
 
@@ -315,15 +343,13 @@ class RTree
 
     void addPolygonsToNode(Node<T> *node, Polygon<T> *polygon, Node<T> *firstHalfNode, Node<T> *secondHalfNode)
     {
-        int remainedNodes = maxEntries - 2 + 1;
+        int remainingNodes = maxEntries - 2 + 1;
 
 
-        while (remainedNodes > 0)
+        while (remainingNodes > 0)
         {
-
             addNewPolygonNearToNode(node, polygon, firstHalfNode, secondHalfNode);
-
-            remainedNodes--;
+            remainingNodes--;
         }
     }
 
@@ -574,6 +600,9 @@ class RTree
 
     int insert(Polygon<T> *polygon)
     {
+        if (polygon->identifier == 10) {
+            this->shouldPrintLog = true;
+        }
         T current_id;
         if(firstTime)
         {
@@ -585,7 +614,6 @@ class RTree
         }
 
         Node<T> *node = search(polygon);
-
         if ((node->count) < maxEntries)
         {
             node->polygons[node->count] = polygon->copy();
@@ -595,6 +623,7 @@ class RTree
         }
         else
         {
+
             Node<T> *firstHalfNode;
             Node<T> *secondHalfNode;
 
@@ -604,7 +633,7 @@ class RTree
             identifier++;
 
             firstHalfNode->father = node->father;
-            secondHalfNode->father = node->father;
+            // secondHalfNode->father = node->father;
 
             fillExtremeNodes(node, firstHalfNode, secondHalfNode);
             addPolygonsToNode(node, polygon, firstHalfNode, secondHalfNode);
@@ -769,7 +798,7 @@ class RTree
         {
             for(int i=0; i<node->count; i++)
             {
-                cout<< "Poly: "<<node->polygons[i].identifier <<endl;
+                cout<< "Poly: "<< node->polygons[i].identifier << " <=> " << node->polygons[i].points[0].to_string() <<endl;
             }
         }
         else
