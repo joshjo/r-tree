@@ -225,9 +225,9 @@ public:
                     minDistance = newDistance;
                 }
             }
-            if (shouldPrintLog) {
+            /*if (shouldPrintLog) {
                 cout << "min Distance: " << minDistance << " i: "
-            }
+            }*/
             current = &(node->children[index]);
         }
         return current;
@@ -270,7 +270,51 @@ public:
             }
         }
     }
+    vector<Polygon<T>> rangeSearch(Node<T>* node,Rectangle<T>* region){
+        vector <Node<T>*> childrenNode;
+        vector <Polygon<T>> elementsInRange;
+        childrenNode = node->getChildrenVector();
 
+        for(auto children : childrenNode){
+            if(children->leaf)
+            {
+                auto polygonsChildren = children->get_vector_polygons();
+                for(auto pc : polygonsChildren)
+                {
+                    if((pc->min.x >= region->min.x && pc->min.y >= region->min.y) &&
+                    (pc->max.x <= region->max.x && pc->max.y <= region->max.y)){
+                        elementsInRange.push_back(*pc);
+                    }
+                }
+
+            }
+            else{
+                if((children->get_rectangle()->min.x >= region->min.x && children->get_rectangle()->min.y >= region->min.y) &&
+                (children->get_rectangle()->max.x <= region->max.x && children->get_rectangle()->max.y <= region->max.y)){
+                    return rangeSearch(children,region);
+                }
+            }
+        }
+        return elementsInRange;
+    }
+    vector <Polygon<T>> rangeSearch(Rectangle<T>* region){
+        vector <Polygon<T>> elementsInRange;
+        if(root->leaf){
+            auto polygonsRoot = root->get_vector_polygons();
+            for(auto pr : polygonsRoot)
+            {
+                if((pr->min.x >= region->min.x && pr->min.y >= region->min.y) &&
+                (pr->max.x <= region->max.x && pr->max.y <= region->max.y)){
+                    elementsInRange.push_back(*pr);
+                }
+            }
+            return elementsInRange;
+        }
+        else{
+            return rangeSearch(root,region);
+        }
+    }
+    
     vector <Polygon<T> * > nearestSearch(P point, size_t k) {
         /*
         - We use 2 arrays:

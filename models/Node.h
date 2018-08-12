@@ -159,17 +159,21 @@ class Node
             return count;
         }
 
-        Poly* get_polygons() {
+        /*Poly* get_polygons() {
             return polygons;
-        }
+        }*/
 
         Rectangle<T>* get_rectangle() {
             return rectangle;
         }
         
         //for rangeSearch --Luis--
-        Poly** get_vector_polygons(){
-            return this->polygons;
+        vector<Polygon<T>*> get_vector_polygons(){
+            vector<Polygon<T>*> array;
+            for (size_t i = 0; i < count; i += 1) {
+                array.push_back(polygons[i]);
+            }
+            return array;
         }
         // bool isInsideRectangle(Node<T> *node)
         // {
