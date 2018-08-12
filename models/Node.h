@@ -92,12 +92,12 @@ class Node
         }
 
         void getFartherPolygons(int & a, int & b) {
-            float minDistance = std::numeric_limits<T>::max();
+            float maxDistance = std::numeric_limits<T>::min();
             for (size_t i = 0; i < count; i += 1) {
                 for (size_t j = i + 1; j < count; j += 1) {
                     float newDistance = polygons[i]->getDistance(*polygons[j]);
-                    if (newDistance < minDistance) {
-                        minDistance = newDistance;
+                    if (newDistance > maxDistance) {
+                        maxDistance = newDistance;
                         a = i;
                         b = j;
                     }
@@ -106,12 +106,12 @@ class Node
         }
 
         void getFartherChildren(int & a, int & b) {
-            float minDistance = std::numeric_limits<T>::max();
+            float maxDistance = std::numeric_limits<T>::min();
             for (size_t i = 0; i < count; i += 1) {
                 for (size_t j = i + 1; j < count; j += 1) {
                     float newDistance = children[i]->rectangle->getDistance(*(children[j]->rectangle));
-                    if (newDistance < minDistance) {
-                        minDistance = newDistance;
+                    if (newDistance > maxDistance) {
+                        maxDistance = newDistance;
                         a = i;
                         b = j;
                     }

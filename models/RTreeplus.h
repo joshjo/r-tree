@@ -49,7 +49,7 @@ public:
     }
 
     int insert(Polygon<T> * polygon) {
-        if (polygon->id == 22) {
+        if (polygon->id == 9) {
             shouldPrintLog = true;
         }
         N ** searchNode = search(polygon);
@@ -67,6 +67,9 @@ public:
             N * right = new N(M, id++);
             Poly * polygonA = (*searchNode)->polygons[a];
             Poly * polygonB = (*searchNode)->polygons[b];
+
+            cout << "polygonA " << polygonA->id << endl;
+            cout << "polygonB " << polygonB->id << endl;
 
             // if (shouldPrintLog) {
             //     cout << "polygonA " << polygonA->id << endl;
@@ -102,6 +105,7 @@ public:
             } else {
                 left->updateRectangle();
                 left->parent = (*parent);
+                // right->updateRectangle();
                 (*searchNode) = left;
                 reInsertNode(right);
             }
@@ -109,6 +113,7 @@ public:
 
             (*parent)->updateRectangle();
         }
+        (*searchNode)->updateRectangle();
 
         return 1;
     }
@@ -219,6 +224,9 @@ public:
                     index = i;
                     minDistance = newDistance;
                 }
+            }
+            if (shouldPrintLog) {
+                cout << "min Distance: " << minDistance << " i: "
             }
             current = &(node->children[index]);
         }

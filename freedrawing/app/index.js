@@ -234,6 +234,9 @@ function drawPolygons(polygons, styles=newPolygonColors) {
       ).fill(region.color).stroke(styles.polygonStroke);
     } else if (polygons[i].polygon.length === 1) {
       const point = polygons[i].polygon[0];
+      draw.text(`${polygons[i].id}`).move(
+        point[0] + 10, point[1] + 10
+      ).fill('white').font({ size: 16 });
       svgPolygon = draw.circle(12).fill(
         region.color
       ).stroke({
