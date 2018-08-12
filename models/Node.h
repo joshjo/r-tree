@@ -166,7 +166,11 @@ class Node
         Rectangle<T>* get_rectangle() {
             return rectangle;
         }
-
+        
+        //for rangeSearch --Luis--
+        Poly** get_vector_polygons(){
+            return this->polygons;
+        }
         // bool isInsideRectangle(Node<T> *node)
         // {
         //     return(rectangle->min.x <= node->re->points[0].x &&
