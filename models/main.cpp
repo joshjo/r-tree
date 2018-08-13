@@ -33,7 +33,7 @@ int main() {
 
     for (size_t i = 0; i < arr1.size(); i += 1) {
         Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
-        tree->insert(p);
+        cout << "region id " << tree->insert(p) << endl;
     }
     Point<dtype> min(4,2);
     //Point<dtype> max(8,5);

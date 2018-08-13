@@ -40,7 +40,15 @@ int main() {
     RTree<dtype> * tree = new RTree<dtype>(5, 2);
 
     vector<Point<dtype> > arr1;
-    arr1.push_back(*(new Point<dtype>(388,131  ))); // 1
+    arr1.push_back(*(new Point<dtype>(2,2  ))); // 1
+    arr1.push_back(*(new Point<dtype>(3,4  ))); // 2
+    arr1.push_back(*(new Point<dtype>(4,2  ))); // 3
+    arr1.push_back(*(new Point<dtype>(6,2  ))); // 4
+    arr1.push_back(*(new Point<dtype>(6,4  ))); // 5
+    arr1.push_back(*(new Point<dtype>(8,5  ))); // 6
+
+    arr1.push_back(*(new Point<dtype>(9,8  )));
+    /*arr1.push_back(*(new Point<dtype>(388,131  ))); // 1
     arr1.push_back(*(new Point<dtype>(246,375  ))); // 2
     arr1.push_back(*(new Point<dtype>(595,339  ))); // 3
     arr1.push_back(*(new Point<dtype>(533,158  ))); // 4
@@ -56,7 +64,7 @@ int main() {
     // arr1.push_back(*(new Point<dtype>(345,470  ))); // 9
     // arr1.push_back(*(new Point<dtype>(808,95  )));  // 10
 
-
+*/
     for (size_t i = 0; i < arr1.size(); i += 1) {
         Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
         tree->insert(p);
@@ -99,11 +107,11 @@ int main() {
             int identifier_polygon = count++;
             char mychar = 'A';
             // arr1.push_back(*(new Point<dtype>(414, 214)));
-            cout << "arr1.push_back(*(new Point<dtype>(" << pv[0].to_string("", " ", " ") << ")));" << endl;
+            //cout << "arr1.push_back(*(new Point<dtype>(" << pv[0].to_string("", " ", " ") << ")));" << endl;
             int identifier_region = tree->insert(new Polygon<dtype>(pv, identifier_polygon));
             // tree->print();
-            // json_string = "{\"status\": true, \"identifier_polygon\":" + to_string (identifier_polygon) + "}";
-            json_string = "{\"status\": true}";
+            json_string = "{\"status\": true, \"identifier_polygon\":" + to_string (identifier_polygon) + ", \"identifier_region\":" + to_string(identifier_region) + "}";
+            //json_string = "{\"status\": true}";
             stream << json_string;
             response->write_get(stream,header);
         } catch (const exception &e) {
@@ -157,15 +165,28 @@ int main() {
             shared_ptr<HttpServer::Request> request
         ) {
         stringstream stream;
-        string json_string = "{}";
-        stream << json_string;
+        string json_string = "{\"polygons\": [";
+        vector<dtype> v;
         SimpleWeb::CaseInsensitiveMultimap header;
         try {
             ptree pt;
             read_json(request->content, pt);
-            int min = pt.get_child("min").get_value<int>();
-            int max = pt.get_child("max").get_value<int>();
-            cout << min << " " << max << endl;
+            for (boost::property_tree::ptree::value_type& rowPair:pt.get_child("polygon")) {
+                for (boost::property_tree::ptree::value_type& itemPair : rowPair.second) {
+                    int value = itemPair.second.get_value<int>();
+                    v.push_back(value);
+                }
+            }
+            P min(v[0],v[1]); 
+            P max(v[2],v[3]);
+            Rectangle<dtype>* r = new Rectangle<dtype>(min,max);
+            auto polygons = tree->rangeSearch(r);
+            for(auto p : polygons){
+                json_string += to_string(p.get_id()) + ",";
+            }
+            json_string.pop_back();
+            json_string += "]}";
+            stream << json_string;
             //use polygonVector for search
             response->write_get(stream,header);
         } catch (const exception &e) {
@@ -273,7 +294,6 @@ int main() {
             tree = new RTree<dtype>(2,5);
             json_string = "['status': true]";
             stream << json_string;
-            response->write_get(stream,header);
             response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(

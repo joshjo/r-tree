@@ -52,11 +52,13 @@ public:
         if (polygon->id == 9) {
             shouldPrintLog = true;
         }
+        int idRegion=0;
         N ** searchNode = search(polygon);
         if ( ! (*searchNode)) {
             (*searchNode) = new N (M, id++);
+            idRegion = (*searchNode)->get_rectangle()->get_id();
         }
-
+        
         int index = (*searchNode)->addPolygon(polygon);
         if (index >= M) {
             int a = -1, b = -1;
@@ -80,6 +82,8 @@ public:
             right->addPolygon(polygonB);
 
             for (int i = 0; i < (*searchNode)->count; i++) {
+                
+                //cout << "idright " << right->get_rectangle()->get_id() << endl;
                 if (i == a || i == b) {
                     continue;
                 }
@@ -91,6 +95,7 @@ public:
                 } else {
                     left->addPolygon(currentPolygon);
                 }
+
             }
 
             if ( ! (*parent)) {
@@ -114,8 +119,7 @@ public:
             (*parent)->updateRectangle();
         }
         (*searchNode)->updateRectangle();
-
-        return 1;
+        return idRegion;
     }
 
     void reInsertNode(N * node) {
@@ -123,7 +127,7 @@ public:
         N ** previous = &root;
         while ((*current)->rectangle->isInside(*(node->rectangle)) && ( ! (*current)->leaf)) {
             previous = current;
-            for (size_t i = 0; i < (*current)->count; i += 1) {
+            for (int i = 0; i < (*current)->count; i += 1) {
                 current = &(*current)->children[i];
                 if ((*current)->rectangle->isInside(*(node->rectangle))) {
                     break;
@@ -133,7 +137,6 @@ public:
         int index = (*previous)->addChildren(node);
         node->updateRectangle();
         node->parent = (*previous);
-
 
         if (index >= M) {
             N * left = new N(M, id++, false);
@@ -201,8 +204,6 @@ public:
                 // cout << "parent" << (*parent)->id << "|" << (*previous)->id << endl;
                 reInsertNode(right);
             }
-
-
         }
     }
 
@@ -315,7 +316,7 @@ public:
         }
     }
     
-    vector <Polygon<T> * > nearestSearch(P point, size_t k) {
+    vector <Polygon<T> * > nearestSearch(P point, int k) {
         /*
         - We use 2 arrays:
           a. missingVisits: which store all the nodes that has not been
