@@ -2,12 +2,25 @@
 #include <math.h>
 #include <vector>
 #include "RTreeplus.h"
+#include <sstream>
+
 
 using namespace std;
 
 typedef int dtype;
 
-int main() {
+int main(int argc, char *argv[]) {
+    int val = 10;
+    if (argc >= 2)
+    {
+        std::istringstream iss( argv[1] );
+        // int val;
+
+        if ((iss >> val) && iss.eof()) // Check eofbit
+        {
+            // Conversion successful
+        }
+    }
 
     RTree<dtype> *tree = new RTree<dtype>(5, 2);
 
@@ -111,29 +124,39 @@ int main() {
     // arr1.push_back(*(new Point<dtype>(967,549  )));
     // arr1.push_back(*(new Point<dtype>(671,395  )));
 
-    arr1.push_back(*(new Point<dtype>(388,131  ))); // 1
-    arr1.push_back(*(new Point<dtype>(246,375  ))); // 2
-    arr1.push_back(*(new Point<dtype>(595,339  ))); // 3
-    arr1.push_back(*(new Point<dtype>(533,158  ))); // 4
-    arr1.push_back(*(new Point<dtype>(295,227  ))); // 5
-    arr1.push_back(*(new Point<dtype>(905,294  ))); // 6
+    // arr1.push_back(*(new Point<dtype>(388,131  ))); // 1
+    // arr1.push_back(*(new Point<dtype>(246,375  ))); // 2
+    // arr1.push_back(*(new Point<dtype>(595,339  ))); // 3
+    // arr1.push_back(*(new Point<dtype>(533,158  ))); // 4
+    // arr1.push_back(*(new Point<dtype>(295,227  ))); // 5
+    // arr1.push_back(*(new Point<dtype>(905,294  ))); // 6
 
-    arr1.push_back(*(new Point<dtype>(546,248  )));
-    arr1.push_back(*(new Point<dtype>(754,371  )));
+    // arr1.push_back(*(new Point<dtype>(546,248  )));
+    // arr1.push_back(*(new Point<dtype>(754,371  )));
     // arr1.push_back(*(new Point<dtype>(440,229  )));
     // arr1.push_back(*(new Point<dtype>(734,108  ))); // 7
     // arr1.push_back(*(new Point<dtype>(196,127  ))); // 8
     // arr1.push_back(*(new Point<dtype>(345,470  ))); // 9
     // arr1.push_back(*(new Point<dtype>(808,95  )));  // 10
 
+    for(int i = 0; i < val; i++)
+        // for(int j = 0;j<10;j++) {
+        arr1.push_back(*(new Point<dtype>(i / 10, i % 10)));
+        // }
+
     for (size_t i = 0; i < arr1.size(); i += 1) {
         Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
         tree->insert(p);
+        // if (i == 27) {
+        //     tree->print();
+        //     cout << "===================" << endl;
+        // }
     }
 
 
     // cout << tree->getDistance(p1,p2) << endl;
-    tree->print();
+    // tree->print();
+    cout << tree->graphviz() << endl;
     // cout << tree->get_json_string() << endl;
     // cout << " ======= " << endl;
     // Point<dtype> searchPoint(9, 8);

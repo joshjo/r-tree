@@ -40,7 +40,7 @@ class Node
             this->leaf = leaf;
         }
 
-        void updateRectangle() {
+        void updateRectangle(bool recursive = false) {
             if (leaf) {
                 for (size_t i = 0; i < count; i += 1) {
                     if (polygons[i]->min.x < rectangle->min.x) {
@@ -71,6 +71,9 @@ class Node
                         rectangle->max.y = children[i]->rectangle->max.y;
                     }
                 }
+            }
+            if (parent && recursive) {
+                parent->updateRectangle();
             }
         }
 
@@ -166,7 +169,7 @@ class Node
         Rectangle<T>* get_rectangle() {
             return rectangle;
         }
-        
+
         //for rangeSearch --Luis--
         Poly** get_vector_polygons(){
             return this->polygons;

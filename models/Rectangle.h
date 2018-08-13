@@ -32,6 +32,11 @@ class Rectangle
         int get_id() {
             return id;
         }
+
+        string get_strid() {
+            string str = "R" + to_string(id);
+            return str;
+        }
         Rectangle(){}
         Rectangle(P pMin, P pMax, int id)
         {
@@ -59,7 +64,7 @@ class Rectangle
                 for(auto pointBox2 : otherbox)
                 {
                     float distance = sqrt(pow(pointBox1.x-pointBox2.x,2) + pow(pointBox1.y-pointBox2.y,2));
-                    if(minDistance > distance)
+                    if(distance < minDistance)
                     {
                         minDistance = distance;
                     }

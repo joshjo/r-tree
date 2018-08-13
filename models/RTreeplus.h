@@ -49,8 +49,10 @@ public:
     }
 
     int insert(Polygon<T> * polygon) {
-        if (polygon->id == 9) {
+        if (polygon->id == 29) {
             shouldPrintLog = true;
+        } else {
+            shouldPrintLog = false;
         }
         N ** searchNode = search(polygon);
         if ( ! (*searchNode)) {
@@ -62,19 +64,10 @@ public:
             int a = -1, b = -1;
             (*searchNode)->getFartherPolygons(a, b);
 
-            N ** parent = &((*searchNode)->parent);
-            N * left = new N(M, id++);
+            N * left = new N(M, (*searchNode)->id);
             N * right = new N(M, id++);
             Poly * polygonA = (*searchNode)->polygons[a];
             Poly * polygonB = (*searchNode)->polygons[b];
-
-            cout << "polygonA " << polygonA->id << endl;
-            cout << "polygonB " << polygonB->id << endl;
-
-            // if (shouldPrintLog) {
-            //     cout << "polygonA " << polygonA->id << endl;
-            //     cout << "polygonB " << polygonB->id << endl;
-            // }
 
             left->addPolygon(polygonA);
             right->addPolygon(polygonB);
@@ -93,118 +86,182 @@ public:
                 }
             }
 
+            N ** parent = &((*searchNode)->parent);
+
             if ( ! (*parent)) {
                 (*parent) = new N(M, id++, false);
+                // delete root;
                 (*parent)->addChildren(left);
-                (*parent)->addChildren(right);
-                (*searchNode) = (*parent);
-                left->updateRectangle();
-                left->parent = (*parent);
-                right->updateRectangle();
-                right->parent = (*parent);
+                root = (*parent);
             } else {
-                left->updateRectangle();
-                left->parent = (*parent);
-                // right->updateRectangle();
+                // delete (*searchNode);
                 (*searchNode) = left;
-                reInsertNode(right);
             }
 
+            if (shouldPrintLog) {
+                cout << "parent    " << (*parent) << " " << (*parent)->count << endl;
+            }
 
+            int index = (*parent)->addChildren(right);
+            left->updateRectangle();
+            left->parent = (*parent);
+            right->updateRectangle();
+            right->parent = (*parent);
             (*parent)->updateRectangle();
+            reorderParent(*parent);
         }
-        (*searchNode)->updateRectangle();
+        (*searchNode)->updateRectangle(true);
 
         return 1;
     }
 
-    void reInsertNode(N * node) {
-        N ** current = &root;
-        N ** previous = &root;
-        while ((*current)->rectangle->isInside(*(node->rectangle)) && ( ! (*current)->leaf)) {
-            previous = current;
-            for (size_t i = 0; i < (*current)->count; i += 1) {
-                current = &(*current)->children[i];
-                if ((*current)->rectangle->isInside(*(node->rectangle))) {
+    void reorderParent (N* & node) {
+        if (node == NULL || node->count <= M) {
+            return;
+        }
+        N * left = new N(M, node->id, false);
+        N * right = new N(M, id++, false);
+
+        int a = -1, b = -1;
+        node->getFartherChildren(a, b);
+        N * nodeA = node->children[a];
+        N * nodeB = node->children[b];
+        N * parent = node->parent;
+
+        nodeA->parent = left;
+        nodeB->parent = right;
+
+        left->addChildren(nodeA);
+        right->addChildren(nodeB);
+
+        for (int i = 0; i < node->count; i++) {
+            if (i == a || i == b) {
+                continue;
+            }
+            N * currentNode = node->children[i];
+            if (nodeA->rectangle->getDistance(*(currentNode->rectangle)) < nodeB->rectangle->getDistance(*(currentNode->rectangle)) && left->count <= m) {
+                left->addChildren(currentNode);
+                currentNode->parent = left;
+            } else if (right->count <= m) {
+                right->addChildren(currentNode);
+                currentNode->parent = right;
+            } else {
+                left->addChildren(currentNode);
+                currentNode->parent = left;
+            }
+        }
+
+        left->updateRectangle();
+        right->updateRectangle();
+
+        if (!parent) {
+            N* newParent = new N(M, id++, false);
+            newParent->addChildren(left);
+            newParent->addChildren(right);
+
+            left->parent = newParent;
+            right->parent = newParent;
+
+            root = newParent;
+            newParent->updateRectangle();
+        }
+        else {
+            left->parent = parent;
+            right->parent = parent;
+            for (size_t i = 0; i < parent->count; i+= 1) {
+                if (parent->children[i] == node ) {
+                    parent->children[i] = left;
                     break;
                 }
             }
-        }
-        int index = (*previous)->addChildren(node);
-        node->updateRectangle();
-        node->parent = (*previous);
-
-
-        if (index >= M) {
-            N * left = new N(M, id++, false);
-            N * right = new N(M, id++, false);
-            int a = -1, b = -1;
-            (*previous)->getFartherChildren(a, b);
-
-            N ** parent = &((*previous)->parent);
-            N * nodeA = (*previous)->children[a];
-            N * nodeB = (*previous)->children[b];
-
-            left->addChildren(nodeA);
-            nodeA->parent = left;
-            right->addChildren(nodeB);
-            nodeB->parent = right;
-
-            if (shouldPrintLog) {
-                cout << "nodeA " << nodeA->id << endl;
-                cout << "nodeB " << nodeB->id << endl;
-            }
-
-            for (int i = 0; i < (*previous)->count; i++) {
-                if (i == a || i == b) {
-                    continue;
-                }
-                N * currentNode = (*previous)->children[i];
-                // cout << "currentNode " << currentNode->id << endl;
-                if (nodeA->rectangle->getDistance(*(currentNode->rectangle)) < nodeB->rectangle->getDistance(*(currentNode->rectangle)) && left->count <= m) {
-                    left->addChildren(currentNode);
-                    currentNode->parent = left;
-                } else if (right->count <= m) {
-                    right->addChildren(currentNode);
-                    currentNode->parent = right;
-
-                    // if (shouldPrintLog) {
-                    //     cout << "currentNode " << currentNode->id << endl;
-                    //     cout << "parent " << currentNode->parent->id << endl;
-                    // }
-                } else {
-                    left->addChildren(currentNode);
-                    currentNode->parent = left;
-                }
-            }
-            left->updateRectangle();
-
-            if (shouldPrintLog) {
-                cout << "right size " << right->count << endl;
-                for (int i = 0; i < right->count; i += 1) {
-                    cout << "id: " << right->children[i]->id << " parent: " << right->children[i]->parent->id << endl;
-                }
-            }
-            if ( ! (*parent) ) {
-                (*parent) = new N(M, id++, false);
-                (*parent)->addChildren(left);
-                (*parent)->addChildren(right);
-                right->updateRectangle();
-                right->parent = (*parent);
-                left->parent = (*parent);
-                root = (*parent);
-            } else {
-                (*previous) = left;
-                left->parent = (*parent);
-                right->updateRectangle();
-                // cout << "*** recursive reinsert ***" << endl;
-                // cout << "parent" << (*parent)->id << "|" << (*previous)->id << endl;
-                reInsertNode(right);
-            }
-
-
+            parent->addChildren(right);
+            parent->updateRectangle();
+            reorderParent(parent);
         }
     }
+
+    // void reInsertNode(N * node) {
+    //     N ** current = &root;
+    //     N ** previous = &root;
+    //     while ((*current)->rectangle->isInside(*(node->rectangle)) && ( ! (*current)->leaf)) {
+    //         previous = current;
+    //         for (size_t i = 0; i < (*current)->count; i += 1) {
+    //             current = &(*current)->children[i];
+    //             if ((*current)->rectangle->isInside(*(node->rectangle))) {
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     int index = (*previous)->addChildren(node);
+    //     node->updateRectangle();
+    //     node->parent = (*previous);
+
+
+    //     if (index >= M) {
+    //         N * left = new N(M, id++, false);
+    //         N * right = new N(M, id++, false);
+    //         int a = -1, b = -1;
+    //         (*previous)->getFartherChildren(a, b);
+
+    //         N ** parent = &((*previous)->parent);
+    //         N * nodeA = (*previous)->children[a];
+    //         N * nodeB = (*previous)->children[b];
+
+    //         left->addChildren(nodeA);
+    //         nodeA->parent = left;
+    //         right->addChildren(nodeB);
+    //         nodeB->parent = right;
+
+    //         for (int i = 0; i < (*previous)->count; i++) {
+    //             if (i == a || i == b) {
+    //                 continue;
+    //             }
+    //             N * currentNode = (*previous)->children[i];
+    //             // cout << "currentNode " << currentNode->id << endl;
+    //             if (nodeA->rectangle->getDistance(*(currentNode->rectangle)) < nodeB->rectangle->getDistance(*(currentNode->rectangle)) && left->count <= m) {
+    //                 left->addChildren(currentNode);
+    //                 currentNode->parent = left;
+    //             } else if (right->count <= m) {
+    //                 right->addChildren(currentNode);
+    //                 currentNode->parent = right;
+
+    //                 // if (shouldPrintLog) {
+    //                 //     cout << "currentNode " << currentNode->id << endl;
+    //                 //     cout << "parent " << currentNode->parent->id << endl;
+    //                 // }
+    //             } else {
+    //                 left->addChildren(currentNode);
+    //                 currentNode->parent = left;
+    //             }
+    //         }
+    //         left->updateRectangle();
+
+    //         if (shouldPrintLog) {
+    //             cout << "right size " << right->count << endl;
+    //             for (int i = 0; i < right->count; i += 1) {
+    //                 cout << "id: " << right->children[i]->id << " parent: " << right->children[i]->parent->id << endl;
+    //             }
+    //         }
+    //         if ( ! (*parent) ) {
+    //             (*parent) = new N(M, id++, false);
+    //             (*parent)->addChildren(left);
+    //             (*parent)->addChildren(right);
+    //             right->updateRectangle();
+    //             right->parent = (*parent);
+    //             left->parent = (*parent);
+    //             root = (*parent);
+    //         } else {
+    //             (*previous) = left;
+    //             left->parent = (*parent);
+    //             right->updateRectangle();
+    //             // cout << "*** recursive reinsert ***" << endl;
+    //             // cout << "parent" << (*parent)->id << "|" << (*previous)->id << endl;
+    //             reInsertNode(right);
+    //         }
+
+
+    //     }
+    // }
 
     N ** search(Polygon<T> * polygon) {
         if (! root) {
@@ -225,9 +282,9 @@ public:
                     minDistance = newDistance;
                 }
             }
-            if (shouldPrintLog) {
-                cout << "min Distance: " << minDistance << " i: "
-            }
+            // if (shouldPrintLog) {
+            //     cout << "min Distance: " << minDistance << " i: "
+            // }
             current = &(node->children[index]);
         }
         return current;
@@ -253,22 +310,57 @@ public:
     }
 
     void print(Node<T> *node) {
-        cout<<"Identifier rectangle: R"<<node->rectangle->id;
         if (node->parent != NULL) {
-            cout <<" Father: R"<< node->parent->rectangle->id;
+            cout <<"["<< node->parent->rectangle->id << "(" << node->parent << ")"  << "] -> ";
         }
+        cout<<"R"<<node->rectangle->id << "(" << node << ") ";
         cout<<" x:"<<node->rectangle->min.x<<"-"<<node->rectangle->max.x;
         cout<<" y:"<<node->rectangle->min.y<<"-"<<node->rectangle->max.y<<endl;
 
         if (node->leaf) {
             for (int i=0; i<node->count; i++) {
-                cout<< "Poly: "<< node->polygons[i]->id << " <=> " << node->polygons[i]->points[0].to_string() <<endl;
+                cout<< "    Poly: "<< node->polygons[i]->id << " <=> " << node->polygons[i]->points[0].to_string() <<endl;
             }
         } else {
             for (int i=0; i < node->count; i++) {
                 print(node->children[i]);
             }
         }
+    }
+
+    void print() {
+        print(root);
+    }
+
+    void graphviz(Node<T> *node, string & tree){
+        // tree += to_string(node->rectangle->id);
+        tree += node->rectangle->get_strid() + " [ label =\"" + node->rectangle->get_strid() + " | " + node->rectangle->min.to_string() + " | " + node->rectangle->max.to_string() + "\" shape = \"record\"  ]\n";
+        if (node->parent != NULL) {
+            tree += node->parent->rectangle->get_strid() + " -> " + node->rectangle->get_strid() + "\n";
+        }
+        if (node->leaf) {
+            // tree += node->parent->rectangle->get_strid() + " [ label =\"" + "x" + "\" shape = \"record\"  ]\n";
+            string polygons;
+            for (int i=0; i<node->count; i++) {
+                tree += node->rectangle->get_strid() + " -> " + node->polygons[i]->get_strid() + "\n";
+                polygons += node->polygons[i]->get_strid() + " [ ";
+                polygons += "label = \"" + node->polygons[i]->get_strid() + " | " + node->polygons[i]->points[0].to_string() + "\" shape = \"record\" color = \"blue\" ]\n";
+            }
+            tree += polygons;
+        } else {
+            // cout << "heeeere" << endl;
+            for (int i=0; i < node->count; i++) {
+                graphviz(node->children[i], tree);
+            }
+        }
+    }
+
+    string graphviz(){
+        string str = "digraph G {\n";
+        string tree = "";
+        graphviz(root, tree);
+        str += tree + "}";
+        return str;
     }
 
     vector <Polygon<T> * > nearestSearch(P point, size_t k) {
@@ -351,10 +443,6 @@ public:
         return knearest;
     }
 
-    void print() {
-        print(root);
-    }
-
     void get_all(Node<T> *node, vector<Node<T> *> & leafs, vector<Node<T> *> & notleafs) {
         notleafs.push_back(node);
         if (node -> leaf) {
@@ -401,10 +489,10 @@ public:
         json_string.pop_back();
         json_string += "], \"regions\": [ ";
 
-        for (auto node : NL) {
-            if (node->id == root->id) {
-                continue;
-            }
+        for (auto node : L) {
+            // if (node->id == root->id) {
+            //     continue;
+            // }
             json_string += "{\"id\":" + std::to_string(node->rectangle->id) + ",\"polygon\": [";
 
             for (auto point: node->get_rectangle()->get_box()) {

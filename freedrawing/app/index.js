@@ -61,10 +61,10 @@ function drawLoggerBody(regions) {
   let htmlContent = '';
   for (let key in regions) {
     const region = regions[key];
-    htmlContent += `<div class="select-region" data-region="${region.id}" id="select-r${region.id}"><span>R${region.id}</span> <span style="background-color: ${region.color}; width: 15px; height: 15px; position: absolute;"></span></div>`;
+    htmlContent += `<div class="select-region" style="background-color: ${region.color}" data-region="${region.id}" id="select-r${region.id}"><span>R${region.id}</span></div>`;
   }
 
-  $('#logger-body').html(htmlContent);
+  $('#logger-regions').html(htmlContent);
 }
 
 const newPolygonColors = {
@@ -161,17 +161,19 @@ draw.click((e) => {
       lastPoint.animate(100).move(e.offsetX - 5, e.offsetY - 5);
     }
     const point = [e.offsetX, e.offsetY];
-    console.log('point', point);
+    // console.log('point', point);
     api.post("", {
       polygon: [point],
     }).then((d) => {
-      getRegions();
-      const newPolygon = {
-        id: d.data.id,
-        polygon: [point],
-      };
-      polygons.push(newPolygon);
-      drawPolygons([newPolygon]);
+      getRegions(false, () => {
+        console.log('success region', mapRegions);
+        const newPolygon = {
+          id: d.data.id,
+          polygon: [point],
+        };
+        polygons.push(newPolygon);
+        drawPolygons([newPolygon]);
+      });
     });
   } else if(isDrawingKPoint) {
     if ( ! kNearestPoint) {
@@ -343,24 +345,33 @@ $('.nav-link').click(function() {
   $(this).addClass('active');
 });
 
-$('#logger-body').on('click', '.select-region', (e) => {
-  const regionId = $(e.currentTarget).data('region');
-  rePaintPolygons(mapRegions[regionId].polygons, transparentColors);
-  mapRegions[regionId].svg.attr({
-    opacity: 0
-  });
+$('#logger-regions').on('click', '.select-region', (e) => {
+  const currentTarget = $(e.currentTarget);
+  const regionId = currentTarget.data('region');
+  const isActive = currentTarget.hasClass('active');
+  if ( ! isActive) {
+    currentTarget.addClass('active');
+    // rePaintPolygons(mapRegions[regionId].polygons, transparentColors);
+    // mapRegions[regionId].svg.attr({
+    //   opacity: 0
+    // });
+  } else {
+    currentTarget.removeClass('active');
+  }
+
   // console.log('map', mapRegions[regionId]);
   // mapRegions[regionId]
 })
 
 
-function getRegions(shouldDrawPolygons) {
+function getRegions(shouldDrawPolygons, successfoo=()=>{}) {
   api.get().then((d) => {
-    console.log('d.data', d.data);
+    // console.log('d.data', d.data);
     drawRegions(d.data.regions);
     if (shouldDrawPolygons) {
       drawPolygons(d.data.polygons);
     }
+    successfoo();
   });
 }
 

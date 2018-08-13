@@ -108,6 +108,11 @@ class Polygon
             return points;
         }
 
+        string get_strid() {
+            string str = to_string(id);
+            return str;
+        }
+
         T minDist(P & p) {
             // This functions is repeated in the node.
             T sx, sy, tx, ty, rx, ry;
