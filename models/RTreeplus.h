@@ -49,11 +49,6 @@ public:
     }
 
     int insert(Polygon<T> * polygon) {
-        if (polygon->id == 29) {
-            shouldPrintLog = true;
-        } else {
-            shouldPrintLog = false;
-        }
         N ** searchNode = search(polygon);
         if ( ! (*searchNode)) {
             (*searchNode) = new N (M, id++);
@@ -89,7 +84,7 @@ public:
             N ** parent = &((*searchNode)->parent);
 
             if ( ! (*parent)) {
-                (*parent) = new N(M, id++, false);
+                (*parent) = new N(M, 0, false);
                 // delete root;
                 (*parent)->addChildren(left);
                 root = (*parent);
@@ -112,14 +107,15 @@ public:
         }
         (*searchNode)->updateRectangle(true);
 
-        return 1;
+        return id - 1;
     }
 
     void reorderParent (N* & node) {
         if (node == NULL || node->count <= M) {
             return;
         }
-        N * left = new N(M, node->id, false);
+        int leftId = (node->id > 0) ? node->id : id++;
+        N * left = new N(M, leftId, false);
         N * right = new N(M, id++, false);
 
         int a = -1, b = -1;
@@ -155,7 +151,7 @@ public:
         right->updateRectangle();
 
         if (!parent) {
-            N* newParent = new N(M, id++, false);
+            N* newParent = new N(M, 0, false);
             newParent->addChildren(left);
             newParent->addChildren(right);
 
@@ -301,7 +297,9 @@ public:
         */
         vector <Node<T> * > missingVisits;
         vector <Polygon<T> * > knearest;
-
+        if ( ! root) {
+            return knearest;
+        }
         if (root->leaf) {
             missingVisits.push_back(root);
         } else {
@@ -387,21 +385,23 @@ public:
         }
         return elementsInRange;
     }
-    vector <Polygon<T>> rangeSearch(Rectangle<T>* region){
-        vector <Polygon<T>> elementsInRange;
-        if(root->leaf){
+
+    vector <Polygon<T> > rangeSearch(Rectangle<T>* region){
+        vector <Polygon<T> > elementsInRange;
+        if ( ! root) {
+            return elementsInRange;
+        }
+        if (root->leaf) {
             auto polygonsRoot = root->get_vector_polygons();
-            for(auto pr : polygonsRoot)
-            {
+            for (auto pr : polygonsRoot) {
                 if((pr->min.x >= region->min.x && pr->min.y >= region->min.y) &&
-                (pr->max.x <= region->max.x && pr->max.y <= region->max.y)){
+                (pr->max.x <= region->max.x && pr->max.y <= region->max.y)) {
                     elementsInRange.push_back(*pr);
                 }
             }
             return elementsInRange;
-        }
-        else{
-            return rangeSearch(root,region);
+        } else {
+            return rangeSearch(root, region);
         }
     }
 

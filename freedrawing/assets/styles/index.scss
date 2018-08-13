@@ -27,6 +27,15 @@ html {
 
 }
 
+svg text {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    pointer-events: none;
+}
+
 .logger {
     // border-left: 1px solid #ffffff66;
     position: absolute;

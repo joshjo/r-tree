@@ -8,7 +8,6 @@ import 'bootstrap';
 
 import styles, { colors } from './styles';
 
-import { regions, polygons } from './data';
 import { polygonToString } from './helpers';
 
 
@@ -18,6 +17,9 @@ import api from './api';
 window.jQuery = $;
 window.$ = $;
 
+const RESTART = "RESTART";
+const TRANSPARENT = "TRANSPARENT";
+const SEARCH = "SEARCH";
 
 const addPolygonBtn = $('#add-polygon');
 const addPointBtn = $('#add-point');
@@ -37,16 +39,13 @@ let currentRegions = [];
 let lastPoint;
 let kNearestPoint;
 let mapRegions = {};
+let polygons = [];
+let regions = [];
 
 let isDrawingPoint = false
 let isDrawingPolygon = false;
 let isDrawingKPoint = false;
-
-function cleanPolygons() {
-  if (rangeRectangle) {
-    rangeRectangle.remove();
-  }
-}
+let isDrawingRegion = false;
 
 function getRandomColor() {
   var letters = "9ABCDEF".split('');
@@ -76,9 +75,9 @@ const newPolygonColors = {
 
 const kSearchPolygonColors = {
   polygonColor: {
-    fill: colors.successTransparent,
+    fill: colors.secondaryTransparent,
   },
-  polygonStroke: styles.kPointStroke,
+  polygonStroke: styles.regionBorder,
 }
 
 const transparentColors = {
@@ -89,8 +88,14 @@ const transparentColors = {
 }
 
 function createRectangle() {
-  cleanPolygons();
-  rangeRectangle = draw.rect().fill('#044B9466').draw();
+  if (rangeRectangle) {
+    rangeRectangle.remove();
+    rangeRectangle = undefined;
+  }
+  rangeRectangle = draw.rect().fill('#ffffff55').draw();
+  rangeRectangle.on('drawstart', (e) => {
+    isDrawingRegion = true;
+  });
 }
 
 function loadDefaultTemplate() {
@@ -103,17 +108,19 @@ draw.dblclick(() => {
     api.post("", {
       polygon: currentPoints,
     }).then((d) => {
-      const newPolygon = {
-        id: d.data.id,
-        polygon: currentPoints,
-      };
-      drawPolygons([newPolygon]);
-      addMessage('Polygon added successfully.', 'success');
-      getRegions(false);
+      getRegions(true);
       removeNewPolygon();
     });
   }
 });
+
+function removeRegion() {
+  isDrawingRegion = false;
+  if (rangeRectangle) {
+    rangeRectangle.remove();
+    rangeRectangle = undefined;
+  }
+}
 
 function removeNewPoint() {
   isDrawingPoint = false;
@@ -126,11 +133,14 @@ function removeKPoint() {
   isDrawingKPoint = false;
   if (kNearestPoint) {
     kNearestPoint.remove();
+    kNearestPoint = undefined;
   }
 }
 
-function removeNewPolygon() {
-  // isDrawingPolygon = false;
+function removeNewPolygon(stopDrawing) {
+  if (stopDrawing) {
+    isDrawingPolygon = false;
+  }
   currentPoints = [];
   if (lastPolygonPoint) {
     lastPolygonPoint.remove();
@@ -154,34 +164,48 @@ draw.click((e) => {
       newPolygon.plot(currentPoints);
       lastPolygonPoint.animate(100).move(e.offsetX - 5, e.offsetY - 5);
     }
-  } else if(isDrawingPoint) {
+  } else if (isDrawingPoint) {
     if (!lastPoint) {
       lastPoint = draw.circle(10).stroke(styles.newPolygonStroke).move(e.offsetX - 5, e.offsetY - 5);
     } else {
       lastPoint.animate(100).move(e.offsetX - 5, e.offsetY - 5);
     }
     const point = [e.offsetX, e.offsetY];
-    // console.log('point', point);
     api.post("", {
       polygon: [point],
     }).then((d) => {
-      getRegions(false, () => {
-        console.log('success region', mapRegions);
-        const newPolygon = {
-          id: d.data.id,
-          polygon: [point],
-        };
-        polygons.push(newPolygon);
-        drawPolygons([newPolygon]);
-      });
+      getRegions(true);
     });
-  } else if(isDrawingKPoint) {
+  } else if (isDrawingKPoint) {
     if ( ! kNearestPoint) {
-      kNearestPoint = draw.circle(10).fill('green').stroke(styles.newPolygonStroke).move(e.offsetX - 5, e.offsetY - 5);
+      kNearestPoint = draw.circle(10).fill('white').move(e.offsetX - 5, e.offsetY - 5);
     } else {
       kNearestPoint.animate(100).move(e.offsetX - 5, e.offsetY - 5);
     }
-    rePaintPolygons(Object.keys(mapPolygons), newPolygonColors);
+    rePaintPolygons([], RESTART);
+    const point = [e.offsetX, e.offsetY];
+    const $k = $('#nearest-k');
+    if ($k) {
+      const k = $k.val();
+      // console.log()
+      api.post("nearest", {
+        polygon: [point], k
+      }).then((d) => {
+        rePaintPolygons(d.data.polygons, SEARCH);
+      });
+    }
+  } else if (isDrawingRegion) {
+    const attrs = rangeRectangle.attr();
+    const polygon = [
+      [attrs.x, attrs.y],
+      [attrs.x + attrs.width, attrs.x + attrs.height]
+    ];
+    api.post("range", {
+      polygon
+    }).then(d => {
+      rePaintPolygons(d.data.polygons, SEARCH);
+      // isDrawingRegion = false;
+    });
   }
 });
 
@@ -218,6 +242,7 @@ function drawRegions(regions) {
     mapRegions[id].color = color;
     mapRegions[id].polygons = [];
     mapRegions[id].svg = polygonSvg;
+    mapRegions[id].text = textSvg;
     currentRegions.push({
       text: textSvg,
       polygon: polygonSvg,
@@ -226,33 +251,66 @@ function drawRegions(regions) {
   drawLoggerBody(mapRegions);
 }
 
-function drawPolygons(polygons, styles=newPolygonColors) {
+function drawPolygons(polygons) {
+  const polys = Object.keys(mapPolygons);
+  for (let i = 0; i < polys.length; i += 1) {
+    const key = polys[i];
+    if (mapPolygons[key].svg) {
+      mapPolygons[key].svg.remove();
+    }
+    if (mapPolygons[key].text) {
+      mapPolygons[key].text.remove();
+    }
+  }
+  console.log('mapPolygons[key]', mapPolygons);
   for (let i = 0; i < polygons.length; i += 1) {
     const region = mapRegions[polygons[i].region];
-    let svgPolygon;
+    let svgPolygon, text;
+    let point = point = polygons[i].polygon[0];
+    // if (mapPolygons[key])
     if (polygons[i].polygon.length > 1) {
       svgPolygon = draw.polygon(
         polygonToString(polygons[i].polygon)
-      ).fill(region.color).stroke(styles.polygonStroke);
+      ).fill(region.color + "AA").stroke({
+        color: region.color,
+        width: 2,
+      });
     } else if (polygons[i].polygon.length === 1) {
-      const point = polygons[i].polygon[0];
-      draw.text(`${polygons[i].id}`).move(
-        point[0] + 10, point[1] + 10
-      ).fill('white').font({ size: 16 });
       svgPolygon = draw.circle(12).fill(
         region.color
       ).stroke({
         width: 2, color: region.color, opacity: 1,
       }).move(point[0] - 6, point[1] - 6);
     }
-    mapPolygons[polygons[i].id] = svgPolygon;
+    text = draw.text(`${polygons[i].id}`).move(
+        point[0] + 10, point[1] + 10
+      ).fill('white').font({ size: 16 });
+    mapPolygons[polygons[i].id] = {
+      svg: svgPolygon,
+      text,
+    };
     mapRegions[polygons[i].region].polygons.push(polygons[i].id);
   }
 }
 
-function rePaintPolygons(ids, styles=kSearchPolygonColors) {
+function rePaintPolygons(ids, mode=RESTART) {
+  if (mode === RESTART) {
+    drawPolygons(polygons);
+    return;
+  }
+
   for(let i = 0; i < ids.length; ++i) {
-    mapPolygons[ids[i]].attr(styles.polygonColor).stroke(styles.polygonStroke);
+    let styles;
+    if (mode === SEARCH) {
+      styles = kSearchPolygonColors;
+    }
+    // if (mode === TRANSPARENT) {
+    //   styles = transparentColors;
+    //   mapPolygons[ids[i]].text.attr({ opacity: 0});
+    // }
+    if (styles !== undefined) {
+      mapPolygons[ids[i]].svg.attr(styles.polygonColor).stroke(styles.polygonStroke);
+    }
   }
 }
 
@@ -278,10 +336,9 @@ const kNearestTemplate = `
 <form>
   <div class="form-group">
     <label for="nearest-k">K</label>
-    <input id="nearest-k" type="number" value="2" />
+    <input id="nearest-k" type="number" value="2" min=1 />
   </div>
-  <button id="cancel-drawing" class="btn btn-danger">Cancel</button>
-  <button id="submit-k-nearest" class="btn btn-primary">Submit</button>
+  <button id="cancel-drawing" class="btn btn-danger">Finish</button>
 </form>
 `;
 
@@ -302,44 +359,44 @@ const alertTemplate = (message, type) => (`
 
 
 addPolygonBtn.click(() => {
-  isDrawingPolygon = true;
+  cancelDrawing();
   extraView.innerHTML = addPolygon;
-  // newPolygon = ;
+  isDrawingPolygon = true;
 });
 
 addPointBtn.click(() => {
+  cancelDrawing();
   extraView.innerHTML = addPoint;
   isDrawingPoint = true;
 })
 
 searchRangeBtn.addEventListener('click', () => {
+  cancelDrawing();
   extraView.innerHTML = rangeSearchTemplate;
   createRectangle();
 });
 
 searchNearest.addEventListener('click', () => {
+  cancelDrawing();
   extraView.innerHTML = kNearestTemplate;
   isDrawingKPoint = true;
 });
 
-$('.information').on('click', '#cancel-drawing', () => {
-  removeNewPolygon();
+function cancelDrawing() {
+  removeNewPolygon(true);
   removeNewPoint();
   removeKPoint();
+  rePaintPolygons([], RESTART);
+  removeRegion();
+}
+
+$('.information').on('click', '#cancel-drawing', () => {
+  cancelDrawing();
   loadDefaultTemplate();
   $('.nav-link').removeClass('active');
 });
 
-$('.information').on('click', '#submit-k-nearest', () => {
-  const k = $('#nearest-k').val();
-  const point = [kNearestPoint.x(), kNearestPoint.y()];
-  rePaintPolygons(Object.keys(mapPolygons), newPolygonColors);
-  api.post("nearest", {
-    polygon: [point], k
-  }).then((d) => {
-    rePaintPolygons(d.data.polygons);
-  });
-})
+
 $('.nav-link').click(function() {
   $('.nav-link').removeClass('active');
   $(this).addClass('active');
@@ -349,27 +406,24 @@ $('#logger-regions').on('click', '.select-region', (e) => {
   const currentTarget = $(e.currentTarget);
   const regionId = currentTarget.data('region');
   const isActive = currentTarget.hasClass('active');
-  if ( ! isActive) {
-    currentTarget.addClass('active');
-    // rePaintPolygons(mapRegions[regionId].polygons, transparentColors);
-    // mapRegions[regionId].svg.attr({
-    //   opacity: 0
-    // });
-  } else {
-    currentTarget.removeClass('active');
+  currentTarget.toggleClass('active');
+  mapRegions[regionId].svg.attr({ opacity: isActive ? 1 : 0 });
+  mapRegions[regionId].text.attr({ opacity: isActive ? 1 : 0 });
+  for (let i = 0; i < mapRegions[regionId].polygons.length; i += 1){
+    const polygonId = mapRegions[regionId].polygons[i];
+    mapPolygons[polygonId].svg.attr({ opacity: isActive ? 1 : 0 });
+    mapPolygons[polygonId].text.attr({ opacity: isActive ? 1 : 0 });
   }
-
-  // console.log('map', mapRegions[regionId]);
-  // mapRegions[regionId]
 })
 
 
 function getRegions(shouldDrawPolygons, successfoo=()=>{}) {
   api.get().then((d) => {
-    // console.log('d.data', d.data);
-    drawRegions(d.data.regions);
+    polygons = d.data.polygons;
+    regions = d.data.regions;
+    drawRegions(regions);
     if (shouldDrawPolygons) {
-      drawPolygons(d.data.polygons);
+      drawPolygons(polygons);
     }
     successfoo();
   });
@@ -377,14 +431,7 @@ function getRegions(shouldDrawPolygons, successfoo=()=>{}) {
 
 getRegions(true);
 
-// draw.text("R1").move(2,2).fill("red");
-// drawPolygons(polygons);
-
-// const a = [[512, 56], [311, 268], [625, 238]];
-// console.log('Convex', hull(a));
-
-
-// api.get('/rtree').then(d => {
+// api.delete('').then(d => {
 //   console.log('d', d);
 // });
 

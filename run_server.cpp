@@ -160,12 +160,12 @@ int main() {
     };
 
     //Post search/range
-    server.resource["^/search/range$"]["POST"] = [&tree](
+    server.resource["^/rtree/range$"]["POST"] = [&tree](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
         stringstream stream;
-        string json_string = "{\"polygons\": [";
+        string json_string = "{\"polygons\": [ ";
         vector<dtype> v;
         SimpleWeb::CaseInsensitiveMultimap header;
         try {
@@ -181,7 +181,7 @@ int main() {
             P max(v[2],v[3]);
             Rectangle<dtype>* r = new Rectangle<dtype>(min,max);
             auto polygons = tree->rangeSearch(r);
-            for(auto p : polygons){
+            for (auto p : polygons) {
                 json_string += to_string(p.get_id()) + ",";
             }
             json_string.pop_back();
@@ -198,8 +198,7 @@ int main() {
     };
 
 
-    //options search/range
-    server.resource["^/search/range$"]["OPTIONS"] = [](
+    server.resource["^/rtree/range$"]["OPTIONS"] = [](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
@@ -284,7 +283,7 @@ int main() {
     };
 
     //delete/reset rtree
-    server.resource["^/rtree/reset$"]["DELETE"] = [&tree](
+    server.resource["^/rtree$"]["DELETE"] = [&tree](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
