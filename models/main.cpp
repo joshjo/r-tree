@@ -147,10 +147,6 @@ int main(int argc, char *argv[]) {
     for (size_t i = 0; i < arr1.size(); i += 1) {
         Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
         tree->insert(p);
-        // if (i == 27) {
-        //     tree->print();
-        //     cout << "===================" << endl;
-        // }
     }
 
 

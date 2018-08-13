@@ -65,10 +65,10 @@ int main() {
         // for(int j = 0;j<10;j++) {
 
 
-    for (size_t i = 0; i < arr1.size(); i += 1) {
-        Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
-        tree->insert(p);
-    }
+    // for (size_t i = 0; i < arr1.size(); i += 1) {
+    //     Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
+    //     tree->insert(p);
+    // }
 
     int count = 1;
     //Get rtree
@@ -165,15 +165,28 @@ int main() {
             shared_ptr<HttpServer::Request> request
         ) {
         stringstream stream;
-        string json_string = "{}";
-        stream << json_string;
+        string json_string = "{\"polygons\": [";
+        vector<dtype> v;
         SimpleWeb::CaseInsensitiveMultimap header;
         try {
             ptree pt;
             read_json(request->content, pt);
-            int min = pt.get_child("min").get_value<int>();
-            int max = pt.get_child("max").get_value<int>();
-            cout << min << " " << max << endl;
+            for (boost::property_tree::ptree::value_type& rowPair:pt.get_child("polygon")) {
+                for (boost::property_tree::ptree::value_type& itemPair : rowPair.second) {
+                    int value = itemPair.second.get_value<int>();
+                    v.push_back(value);
+                }
+            }
+            P min(v[0],v[1]);
+            P max(v[2],v[3]);
+            Rectangle<dtype>* r = new Rectangle<dtype>(min,max);
+            auto polygons = tree->rangeSearch(r);
+            for(auto p : polygons){
+                json_string += to_string(p.get_id()) + ",";
+            }
+            json_string.pop_back();
+            json_string += "]}";
+            stream << json_string;
             //use polygonVector for search
             response->write_get(stream,header);
         } catch (const exception &e) {
@@ -183,6 +196,7 @@ int main() {
             );
         }
     };
+
 
     //options search/range
     server.resource["^/search/range$"]["OPTIONS"] = [](

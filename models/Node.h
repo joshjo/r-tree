@@ -42,7 +42,7 @@ class Node
 
         void updateRectangle(bool recursive = false) {
             if (leaf) {
-                for (size_t i = 0; i < count; i += 1) {
+                for (int i = 0; i < count; i += 1) {
                     if (polygons[i]->min.x < rectangle->min.x) {
                         rectangle->min.x = polygons[i]->min.x;
                     }
@@ -57,7 +57,7 @@ class Node
                     }
                 }
             } else {
-                for (size_t i = 0; i < count; i += 1) {
+                for (int i = 0; i < count; i += 1) {
                     if (children[i]->rectangle->min.x < rectangle->min.x) {
                         rectangle->min.x = children[i]->rectangle->min.x;
                     }
@@ -96,8 +96,8 @@ class Node
 
         void getFartherPolygons(int & a, int & b) {
             float maxDistance = std::numeric_limits<T>::min();
-            for (size_t i = 0; i < count; i += 1) {
-                for (size_t j = i + 1; j < count; j += 1) {
+            for (int i = 0; i < count; i += 1) {
+                for (int j = i + 1; j < count; j += 1) {
                     float newDistance = polygons[i]->getDistance(*polygons[j]);
                     if (newDistance > maxDistance) {
                         maxDistance = newDistance;
@@ -162,17 +162,21 @@ class Node
             return count;
         }
 
-        Poly* get_polygons() {
+        /*Poly* get_polygons() {
             return polygons;
-        }
+        }*/
 
         Rectangle<T>* get_rectangle() {
             return rectangle;
         }
 
         //for rangeSearch --Luis--
-        Poly** get_vector_polygons(){
-            return this->polygons;
+        vector<Polygon<T>*> get_vector_polygons(){
+            vector<Polygon<T>*> array;
+            for (size_t i = 0; i < count; i += 1) {
+                array.push_back(polygons[i]);
+            }
+            return array;
         }
         // bool isInsideRectangle(Node<T> *node)
         // {

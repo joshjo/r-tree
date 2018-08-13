@@ -44,7 +44,11 @@ class Rectangle
             this->max = pMax;
             this->id = id;
         }
-
+        Rectangle(P pMin, P pMax)
+        {
+            this->min = pMin;
+            this->max = pMax;
+        }
         bool isInside(Rectangle<T> & other) {
             return (
                 (min.x <= other.min.x) &&

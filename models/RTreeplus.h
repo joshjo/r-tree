@@ -180,89 +180,6 @@ public:
         }
     }
 
-    // void reInsertNode(N * node) {
-    //     N ** current = &root;
-    //     N ** previous = &root;
-    //     while ((*current)->rectangle->isInside(*(node->rectangle)) && ( ! (*current)->leaf)) {
-    //         previous = current;
-    //         for (size_t i = 0; i < (*current)->count; i += 1) {
-    //             current = &(*current)->children[i];
-    //             if ((*current)->rectangle->isInside(*(node->rectangle))) {
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     int index = (*previous)->addChildren(node);
-    //     node->updateRectangle();
-    //     node->parent = (*previous);
-
-
-    //     if (index >= M) {
-    //         N * left = new N(M, id++, false);
-    //         N * right = new N(M, id++, false);
-    //         int a = -1, b = -1;
-    //         (*previous)->getFartherChildren(a, b);
-
-    //         N ** parent = &((*previous)->parent);
-    //         N * nodeA = (*previous)->children[a];
-    //         N * nodeB = (*previous)->children[b];
-
-    //         left->addChildren(nodeA);
-    //         nodeA->parent = left;
-    //         right->addChildren(nodeB);
-    //         nodeB->parent = right;
-
-    //         for (int i = 0; i < (*previous)->count; i++) {
-    //             if (i == a || i == b) {
-    //                 continue;
-    //             }
-    //             N * currentNode = (*previous)->children[i];
-    //             // cout << "currentNode " << currentNode->id << endl;
-    //             if (nodeA->rectangle->getDistance(*(currentNode->rectangle)) < nodeB->rectangle->getDistance(*(currentNode->rectangle)) && left->count <= m) {
-    //                 left->addChildren(currentNode);
-    //                 currentNode->parent = left;
-    //             } else if (right->count <= m) {
-    //                 right->addChildren(currentNode);
-    //                 currentNode->parent = right;
-
-    //                 // if (shouldPrintLog) {
-    //                 //     cout << "currentNode " << currentNode->id << endl;
-    //                 //     cout << "parent " << currentNode->parent->id << endl;
-    //                 // }
-    //             } else {
-    //                 left->addChildren(currentNode);
-    //                 currentNode->parent = left;
-    //             }
-    //         }
-    //         left->updateRectangle();
-
-    //         if (shouldPrintLog) {
-    //             cout << "right size " << right->count << endl;
-    //             for (int i = 0; i < right->count; i += 1) {
-    //                 cout << "id: " << right->children[i]->id << " parent: " << right->children[i]->parent->id << endl;
-    //             }
-    //         }
-    //         if ( ! (*parent) ) {
-    //             (*parent) = new N(M, id++, false);
-    //             (*parent)->addChildren(left);
-    //             (*parent)->addChildren(right);
-    //             right->updateRectangle();
-    //             right->parent = (*parent);
-    //             left->parent = (*parent);
-    //             root = (*parent);
-    //         } else {
-    //             (*previous) = left;
-    //             left->parent = (*parent);
-    //             right->updateRectangle();
-    //             // cout << "*** recursive reinsert ***" << endl;
-    //             // cout << "parent" << (*parent)->id << "|" << (*previous)->id << endl;
-    //             reInsertNode(right);
-    //         }
-
-
-    //     }
-    // }
-
     N ** search(Polygon<T> * polygon) {
         if (! root) {
             return &root;
@@ -441,6 +358,51 @@ public:
             }
         }
         return knearest;
+    }
+
+    vector<Polygon<T>> rangeSearch(Node<T>* node,Rectangle<T>* region){
+        vector <Node<T>*> childrenNode;
+        vector <Polygon<T>> elementsInRange;
+        childrenNode = node->getChildrenVector();
+
+        for(auto children : childrenNode){
+            if(children->leaf)
+            {
+                auto polygonsChildren = children->get_vector_polygons();
+                for(auto pc : polygonsChildren)
+                {
+                    if((pc->min.x >= region->min.x && pc->min.y >= region->min.y) &&
+                    (pc->max.x <= region->max.x && pc->max.y <= region->max.y)){
+                        elementsInRange.push_back(*pc);
+                    }
+                }
+
+            }
+            else{
+                if((children->get_rectangle()->min.x >= region->min.x && children->get_rectangle()->min.y >= region->min.y) &&
+                (children->get_rectangle()->max.x <= region->max.x && children->get_rectangle()->max.y <= region->max.y)){
+                    return rangeSearch(children,region);
+                }
+            }
+        }
+        return elementsInRange;
+    }
+    vector <Polygon<T>> rangeSearch(Rectangle<T>* region){
+        vector <Polygon<T>> elementsInRange;
+        if(root->leaf){
+            auto polygonsRoot = root->get_vector_polygons();
+            for(auto pr : polygonsRoot)
+            {
+                if((pr->min.x >= region->min.x && pr->min.y >= region->min.y) &&
+                (pr->max.x <= region->max.x && pr->max.y <= region->max.y)){
+                    elementsInRange.push_back(*pr);
+                }
+            }
+            return elementsInRange;
+        }
+        else{
+            return rangeSearch(root,region);
+        }
     }
 
     void get_all(Node<T> *node, vector<Node<T> *> & leafs, vector<Node<T> *> & notleafs) {

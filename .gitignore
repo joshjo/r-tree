@@ -19,6 +19,7 @@ compile_commands.json
 # executables
 http_examples
 https_examples
+run_server
 io_test
 parse_test
 crypto_test
