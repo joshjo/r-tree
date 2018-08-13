@@ -65,10 +65,10 @@ int main() {
         // for(int j = 0;j<10;j++) {
 
 
-    // for (size_t i = 0; i < arr1.size(); i += 1) {
-    //     Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
-    //     tree->insert(p);
-    // }
+    for (size_t i = 0; i < arr1.size(); i += 1) {
+        Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
+        tree->insert(p);
+    }
 
     int count = 1;
     //Get rtree
