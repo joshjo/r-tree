@@ -25,6 +25,32 @@ int main(int argc, char *argv[]) {
     RTree<dtype> *tree = new RTree<dtype>(5, 2);
 
     vector<Point<dtype> > arr1;
+    arr1.push_back(*(new Point<dtype>(2,2  ))); // 1
+    arr1.push_back(*(new Point<dtype>(3,4  ))); // 2
+    arr1.push_back(*(new Point<dtype>(4,2  ))); // 3
+    arr1.push_back(*(new Point<dtype>(6,4  ))); // 4
+    arr1.push_back(*(new Point<dtype>(6,2  ))); // 5
+    arr1.push_back(*(new Point<dtype>(8,5  ))); // 6
+
+    arr1.push_back(*(new Point<dtype>(9,8  )));
+    arr1.push_back(*(new Point<dtype>(1,2  ))); // 4
+    arr1.push_back(*(new Point<dtype>(10,8  ))); // 5
+    arr1.push_back(*(new Point<dtype>(12,3  ))); // 6
+
+    arr1.push_back(*(new Point<dtype>(11,3  )));
+        arr1.push_back(*(new Point<dtype>(13,2  )));
+    arr1.push_back(*(new Point<dtype>(14,2  ))); // 4
+    arr1.push_back(*(new Point<dtype>(15,3  ))); // 5
+    arr1.push_back(*(new Point<dtype>(15,5  ))); // 6
+
+    arr1.push_back(*(new Point<dtype>(15,6  )));
+        arr1.push_back(*(new Point<dtype>(20,3  )));
+        arr1.push_back(*(new Point<dtype>(40,2  )));
+    arr1.push_back(*(new Point<dtype>(50,2  ))); // 4
+    arr1.push_back(*(new Point<dtype>(20,3  ))); // 5
+    arr1.push_back(*(new Point<dtype>(17,5  ))); // 6
+
+    arr1.push_back(*(new Point<dtype>(19,6  )));
     // arr1.push_back(*(new Point<dtype>(486,213  )));
     // arr1.push_back(*(new Point<dtype>(414, 214))); // 1
     // arr1.push_back(*(new Point<dtype>(389, 381))); // 2
@@ -139,20 +165,34 @@ int main(int argc, char *argv[]) {
     // arr1.push_back(*(new Point<dtype>(345,470  ))); // 9
     // arr1.push_back(*(new Point<dtype>(808,95  )));  // 10
 
-    for(int i = 0; i < val; i++)
+    /*for(int i = 0; i < 100; i++){
+        int x = 80;
+        int a = (i / 10) * x;
+        int b = (i % 10) * x;
+        arr1.push_back(*(new Point<dtype>(a, b)));
+    }*/
+
+    /*for(int i = 0; i < val; i++)
         // for(int j = 0;j<10;j++) {
         arr1.push_back(*(new Point<dtype>(i / 10, i % 10)));
-        // }
+        // }*/
 
     for (size_t i = 0; i < arr1.size(); i += 1) {
         Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
         cout << tree->insert(p) << ": " << i + 1 << endl;
     }
 
-
     // cout << tree->getDistance(p1,p2) << endl;
     // tree->print();
     cout << tree->graphviz() << endl;
+    Point<dtype> min(4,2);
+    Point<dtype> max(8,5);
+        //"polygon": [[192,248],[664,602]]
+    Rectangle<dtype>* r = new Rectangle<dtype>(min,max);
+    auto polygons = tree->rangeSearch(r);
+    for (auto p : polygons) {
+        cout << to_string(p.get_id()) << endl;
+    }
     // cout << tree->get_json_string() << endl;
     // cout << " ======= " << endl;
     // Point<dtype> searchPoint(9, 8);

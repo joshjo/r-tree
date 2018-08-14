@@ -358,37 +358,75 @@ public:
         return knearest;
     }
 
-    vector<Polygon<T>> rangeSearch(Node<T>* node,Rectangle<T>* region){
+    vector<Polygon<T>> rangeSearch(Node<T>* node,Rectangle<T>* region,vector <Polygon<T> > &elementsInRange){
         vector <Node<T>*> childrenNode;
-        vector <Polygon<T>> elementsInRange;
         childrenNode = node->getChildrenVector();
-
+        cout << node->get_rectangle()->get_strid() << endl;
+        //vector<Node<T>*> 
         for(auto children : childrenNode){
+
             if(children->leaf)
             {
                 auto polygonsChildren = children->get_vector_polygons();
                 for(auto pc : polygonsChildren)
                 {
+                    cout << pc->min.x << " , " << pc->min.y << endl;
+                    cout << pc->max.x << " , " << pc->max.y << endl;
                     if((pc->min.x >= region->min.x && pc->min.y >= region->min.y) &&
                     (pc->max.x <= region->max.x && pc->max.y <= region->max.y)){
                         elementsInRange.push_back(*pc);
                     }
                 }
-
             }
             else{
-                if((children->get_rectangle()->min.x >= region->min.x && children->get_rectangle()->min.y >= region->min.y) &&
-                (children->get_rectangle()->max.x <= region->max.x && children->get_rectangle()->max.y <= region->max.y)){
-                    return rangeSearch(children,region);
-                }
+
+                    T l,b,r,t,l1,b1,r1,t1,l2,b2,r2,t2;
+                    l1 = children->get_rectangle()->min.x;
+                    l2 = region->min.x;
+                    b1 = children->get_rectangle()->min.y;
+                    b2 = region->min.y;
+                    r1 = children->get_rectangle()->max.x;
+                    r2 = region->max.x;
+                    t1 = children->get_rectangle()->max.y;
+                    t2 = region->max.y;
+                    if(l1 > l2)
+                        l = l1;
+                    else
+                        l = l2;
+                    if(b1 > b2)
+                        b = b1;
+                    else
+                        b = b2;
+                    if(r1 < r2)
+                        r = r1;
+                    else
+                        r = r2; 
+                    if(t1 < t2)
+                        t = t1;
+                    else
+                        t = t2;                           
+                    P min(l,b);
+                    P max(r,t);
+                    cout << "x: " << l << " y: " << b << endl;
+                    cout << "x: " << r << " y: " << t << endl;
+                    if(((region->min.x <= l && region->min.y <= b) || 
+                    (region->max.x >= r && region->max.y >= t)) && (r > l && t > b) )
+                    {                
+                        cout << "lcs" << endl; 
+                        rangeSearch(children,region,elementsInRange);
+                    }
             }
+        }
+        for(auto el : elementsInRange)
+        {
+            cout << el.id << " punto " << el.min.x << " , " << el.min.y << endl;
         }
         return elementsInRange;
     }
 
     vector <Polygon<T> > rangeSearch(Rectangle<T>* region){
         vector <Polygon<T> > elementsInRange;
-        if ( ! root) {
+        if (! root) {
             return elementsInRange;
         }
         if (root->leaf) {
@@ -401,7 +439,8 @@ public:
             }
             return elementsInRange;
         } else {
-            return rangeSearch(root, region);
+            cout << "region es " << region->min.x << " , " << region->min.y << " & " << region->max.x << " , " << region->max.y << endl;
+            return rangeSearch(root, region,elementsInRange);
         }
     }
 

@@ -178,6 +178,73 @@ class Node
             }
             return array;
         }
+
+        /*
+     * AREA ************ Function to calculate a simulated area in order to view how much is growing a region considering the new polygon
+     */
+        float getArea()
+        {
+            return ((rectangle->max.x- rectangle->min.x)*(rectangle->max.y - rectangle->min.y));
+        }
+        
+        float getSimulatedArea(Polygon<T> * polygon)
+        {
+            float minX = rectangle->min.x;
+            float maxX = rectangle->max.x;
+            float minY = rectangle->min.y;
+            float maxY = rectangle->max.y;
+            
+            if(polygon->min.x < rectangle->min.x)
+                rectangle->min.x = polygon->min.x;
+
+            if(polygon->max.x > rectangle->max.x)
+                rectangle->max.x = polygon->max.x;
+
+            if(polygon->min.y < rectangle->min.y)
+                rectangle->min.x = polygon->min.y;
+
+            if(polygon->max.y > rectangle->max.y)
+                rectangle->max.y = polygon->max.y;
+            
+            float area = getArea();
+            
+            rectangle->min.x = minX;
+            rectangle->max.x = maxX;
+            rectangle->min.y = minY;
+            rectangle->max.y = maxY;
+            
+            return area;
+        }
+        
+        float getSimulatedArea(Node<T> * node)
+        {
+            float minX = rectangle->min.x;
+            float maxX = rectangle->max.x;
+            float minY = rectangle->min.y;
+            float maxY = rectangle->max.y;
+            
+            if(node->rectangle->min.x < rectangle->min.x)
+                rectangle->min.x = node->rectangle->min.x;
+
+            if(node->rectangle->max.x > rectangle->max.x)
+                rectangle->max.x = node->rectangle->max.x;
+
+            if(node->rectangle->min.y < rectangle->min.y)
+                rectangle->min.y = node->rectangle->min.y;
+
+            if(node->rectangle->max.y > rectangle->max.y)
+                rectangle->max.y = node->rectangle->max.y;
+            
+            float area = getArea();
+            
+            rectangle->min.x = minX;
+            rectangle->max.x = maxX;
+            rectangle->min.y = minY;
+            rectangle->max.y = maxY;
+            
+            return area;
+        }
+
         // bool isInsideRectangle(Node<T> *node)
         // {
         //     return(rectangle->min.x <= node->re->points[0].x &&

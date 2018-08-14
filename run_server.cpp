@@ -40,14 +40,14 @@ int main() {
     RTree<dtype> * tree = new RTree<dtype>(5, 2);
 
     vector<Point<dtype> > arr1;
-    // arr1.push_back(*(new Point<dtype>(388,131  ))); // 1
-    // arr1.push_back(*(new Point<dtype>(246,375  ))); // 2
-    // arr1.push_back(*(new Point<dtype>(595,339  ))); // 3
-    // arr1.push_back(*(new Point<dtype>(533,158  ))); // 4
-    // arr1.push_back(*(new Point<dtype>(295,227  ))); // 5
-    // arr1.push_back(*(new Point<dtype>(905,294  ))); // 6
+    /*arr1.push_back(*(new Point<dtype>(2,2  ))); // 1
+    arr1.push_back(*(new Point<dtype>(3,4  ))); // 2
+    arr1.push_back(*(new Point<dtype>(4,2  ))); // 3
+    arr1.push_back(*(new Point<dtype>(6,4  ))); // 4
+    arr1.push_back(*(new Point<dtype>(6,2  ))); // 5
+    arr1.push_back(*(new Point<dtype>(8,5  ))); // 6
 
-    // arr1.push_back(*(new Point<dtype>(546,248  )));
+    arr1.push_back(*(new Point<dtype>(9,8  )));*/
     // arr1.push_back(*(new Point<dtype>(754,371  )));
     // arr1.push_back(*(new Point<dtype>(440,229  )));
 
@@ -78,6 +78,16 @@ int main() {
         // string json_string = "{\"polygon\": [";
         stream << tree->get_json_string();
         response->write_get(stream,header);
+
+    };
+        server.resource["^/tree$"]["GET"] = [&tree](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
+        stringstream stream;
+        SimpleWeb::CaseInsensitiveMultimap header;
+        // string json_string = "{\"polygon\": [";
+                    cout << tree->graphviz() << endl;
+        stream << tree->get_json_string();
+        response->write_get(stream,header);
+
     };
 
     //Post rtree
@@ -186,6 +196,7 @@ int main() {
             }
             json_string.pop_back();
             json_string += "]}";
+            cout << "response = " << json_string << endl;
             stream << json_string;
             //use polygonVector for search
             response->write_get(stream,header);
@@ -294,7 +305,6 @@ int main() {
             tree = new RTree<dtype>(2,5);
             json_string = "['status': true]";
             stream << json_string;
-            response->write_get(stream,header);
             response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
