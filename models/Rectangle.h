@@ -1,28 +1,118 @@
 #ifndef RECTANGLE_H
 #define RECTANGLE_H
 
+#include "Point.h"
+
 template <class T> class RTree;
 template <class T> class Node;
+template <class T> class Point;
 template <class T>
 class Rectangle
 {
+	typedef Point<T> P;
     private:
-        float minX;
-        float maxX;
-        float minY;
-        float maxY;
-        int identifier;
-
+        int id;
+        P min = P();
+        P max = P();
     public:
-        Rectangle(){}
-        Rectangle(float minX, float maxX, float minY, float maxY, int identifier)
-        {
-            this->minX = minX;
-            this->maxX = maxX;
-            this->minY = minY;
-            this->maxY = maxY;
-            this->identifier = identifier;
+        P get_min() {
+            return min;
         }
+        P get_max() {
+            return max;
+        }
+        vector<P> get_box() {
+            vector<P> points(4);
+            points[0] = P(min.x, min.y);
+            points[1] = P(max.x, min.y);
+            points[2] = P(max.x, max.y);
+            points[3] = P(min.x, max.y);
+            return points;
+        }
+        int get_id() {
+            return id;
+        }
+
+        string get_strid() {
+            string str = "R" + to_string(id);
+            return str;
+        }
+        Rectangle(){}
+        Rectangle(P pMin, P pMax, int id)
+        {
+            this->min = pMin;
+            this->max = pMax;
+            this->id = id;
+        }
+        Rectangle(P pMin, P pMax)
+        {
+            this->min = pMin;
+            this->max = pMax;
+        }
+        bool isInside(Rectangle<T> & other) {
+            return (
+                (min.x <= other.min.x) &&
+                (min.y <= other.min.y) &&
+                (max.x >= other.max.x) &&
+                (max.y >= other.max.y)
+            );
+        }
+
+        float getArea() {
+            return (max.x - min.x) * (max.y - min.y);
+        }
+
+        float getSimulatedArea(Polygon<T> * polygon) {
+            float minX = (min.x < polygon->min.x) ? min.x : polygon->min.x;
+            float minY = (min.y < polygon->min.y) ? min.y : polygon->min.y;
+
+            float maxX = (max.x > polygon->max.x) ? max.x : polygon->max.x;
+            float maxY = (max.y > polygon->max.y) ? max.y : polygon->max.y;
+
+            // cout << "minX"
+
+            return (maxX - minX) * (maxY - minY);
+        }
+
+        float getDistance(Polygon<T> & other) {
+            vector<P> thisbox = this->get_box();
+            vector<P> otherbox = other.get_box();
+
+            float minDistance = std::numeric_limits<T>::max();
+            for(auto pointBox1 : thisbox)
+            {
+                for(auto pointBox2 : otherbox)
+                {
+                    float distance = sqrt(pow(pointBox1.x-pointBox2.x,2) + pow(pointBox1.y-pointBox2.y,2));
+                    if(distance < minDistance)
+                    {
+                        minDistance = distance;
+                    }
+                }
+            }
+            return minDistance;
+        }
+
+        float getDistance(Rectangle<T> & other) {
+            vector<P> thisbox = this->get_box();
+            vector<P> otherbox = other.get_box();
+
+            float minDistance = std::numeric_limits<T>::max();
+            for(auto pointBox1 : thisbox)
+            {
+                for(auto pointBox2 : otherbox)
+                {
+                    float distance = sqrt(pow(pointBox1.x-pointBox2.x,2) + pow(pointBox1.y-pointBox2.y,2));
+                    if(minDistance > distance)
+                    {
+                        minDistance = distance;
+                    }
+                }
+            }
+            return minDistance;
+        }
+
+
     friend class RTree<T>;
     friend class Node<T>;
 };

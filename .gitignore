@@ -10,13 +10,16 @@ install_manifest.txt
 Testing
 compile_commands.json
 .usages_clang
+*.DS_Store
 
 *.crt
 *.key
+*.dot
 
 # executables
 http_examples
 https_examples
+run_server
 io_test
 parse_test
 crypto_test

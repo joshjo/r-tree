@@ -1,0 +1,96 @@
+// Apply a natural box layout model to all elements
+// but allowing components to change
+// http://www.paulirish.com/2012/box-sizing-border-box-ftw/
+html {
+    box-sizing: border-box;
+}
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+.area {
+    background-color: #252934;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px; /* Set the fixed height of the footer here */
+    line-height: 60px; /* Vertically center the text there */
+    background-color: #f5f5f5;
+}
+
+.messages {
+    position: absolute;
+    bottom: 0;
+    right: 15px;
+
+}
+
+.top-left {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10000000;
+}
+
+.modal-lg {
+    max-width: 90% !important;
+}
+
+svg text {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    pointer-events: none;
+}
+
+.logger {
+    // border-left: 1px solid #ffffff66;
+    position: absolute;
+    width: 200px;
+    right: 0;
+    bottom: 0;
+    background: #252934;
+    height: 100vh;
+    color: white;
+
+    h3 {
+        color: white !important;
+    }
+    .logger-box {
+        padding-top: 10px;
+    }
+    .logger-regions {
+        height: 100vh;
+        overflow-y: scroll;
+    }
+    .select-region {
+        padding: 5px;
+        cursor: pointer;
+        text-align: center;
+        span {
+            color: #252934;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        &.active {
+            background: #252934 !important;
+            span {
+                color: white !important;
+            }
+        }
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+}
+
+

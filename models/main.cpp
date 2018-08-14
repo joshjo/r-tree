@@ -1,56 +1,56 @@
 #include <iostream>
 #include <math.h>
-#include "RTree.h"
+#include <vector>
+#include "RTreeplus.h"
+#include <sstream>
 
 using namespace std;
 
-typedef int cid;
+typedef int dtype;
 
-cid lid = 1;
+int main(int argc, char *argv[]) {
+    int val = 10;
+    if (argc >= 2)
+    {
+        std::istringstream iss( argv[1] );
+        // int val;
 
-int main() {
+        if ((iss >> val) && iss.eof()) // Check eofbit
+        {
+            // Conversion successful
+        }
+    }
 
-    Polygon<cid> *poly = new Polygon<cid>(2,3, lid++);
-    Polygon<cid> *poly1 = new Polygon<cid>(2,6, lid++);
-    Polygon<cid> *poly2 = new Polygon<cid>(3,4, lid++);
-    Polygon<cid> *poly3 = new Polygon<cid>(3,1, lid++);
-    RTree<cid> *tree = new RTree<cid>(2,5);
-    tree->insert(poly);
-    tree->insert(poly1);
-    tree->insert(poly2);
-    tree->insert(poly3);
+    RTree<dtype> *tree = new RTree<dtype>(5, 2);
 
-    Polygon<cid> *poly4 = new Polygon<cid>(6,9,lid++);
-    tree->insert(poly4);
-    Polygon<cid> *poly5 = new Polygon<cid>(3,3,lid++);
-    tree->insert(poly5);
-    Polygon<cid> *poly6 = new Polygon<cid>(9,2,lid++);
-    tree->insert(poly6);
-    Polygon<cid> *poly7 = new Polygon<cid>(8,3,lid++);
-    tree->insert(poly7);
-    Polygon<cid> *poly8 = new Polygon<cid>(9,6,lid++);
-    tree->insert(poly8);
-    Polygon<cid> *poly9 = new Polygon<cid>(9,6,lid++);
-    tree->insert(poly9);
-    Polygon<cid> *poly10 = new Polygon<cid>(9,6,lid++);
-    tree->insert(poly10);
-    Polygon<cid> *poly11 = new Polygon<cid>(9,6,lid++);
-    tree->insert(poly11);
-    Polygon<cid> *poly12 = new Polygon<cid>(11,8,lid++);
-    tree->insert(poly12);
-    Polygon<cid> *poly13 = new Polygon<cid>(13,9,lid++);
-    tree->insert(poly13);
+    vector<Point<dtype> > arr1;
+    arr1.push_back(*(new Point<dtype>(130, 187))); // 1
+    arr1.push_back(*(new Point<dtype>( 59, 298))); // 2
+    arr1.push_back(*(new Point<dtype>(274, 301))); // 3
+    arr1.push_back(*(new Point<dtype>(217, 149))); // 4
+    arr1.push_back(*(new Point<dtype>(302, 205))); // 5
+    arr1.push_back(*(new Point<dtype>(155, 322))); // 6
+    arr1.push_back(*(new Point<dtype>( 87, 158))); // 7
+    arr1.push_back(*(new Point<dtype>( 46, 236))); // 8
+    arr1.push_back(*(new Point<dtype>(166, 281))); // 9
+    arr1.push_back(*(new Point<dtype>(244, 324))); // 10
 
-    Polygon<cid> *poly14 = new Polygon<cid>(13,8,lid++);
-    tree->insert(poly14);
-    Polygon<cid> *poly15 = new Polygon<cid>(14,9,lid++);
-    tree->insert(poly15);
-    Polygon<cid> *poly16 = new Polygon<cid>(15,8,lid++);
-    tree->insert(poly16);
+    // for(int i = 0; i < val; i++)
+    //     // for(int j = 0;j<10;j++) {
+    //     arr1.push_back(*(new Point<dtype>(i / 10, i % 10)));
+    //     // }
 
-    Polygon<cid> *poly17 = new Polygon<cid>(15,11,lid++);
-    tree->insert(poly17);
+    for (size_t i = 0; i < arr1.size(); i += 1) {
+        Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
+        tree->insert(p);
+    }
 
-    tree->print();
-    return 0;
+    // cout << tree->getDistance(p1,p2) << endl;
+
+    // cout << tree->graphviz() << endl;
+    cout << tree->get_json_string() << endl;
+    // cout << " ======= " << endl;
+    // Point<dtype> searchPoint(9, 8);
+    // tree->nearestSearch(searchPoint, 0);
+
 }
