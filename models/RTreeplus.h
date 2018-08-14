@@ -99,7 +99,7 @@ public:
                 (*searchNode) = left;
             }
 
-            int index = (*parent)->addChildren(right);
+            index = (*parent)->addChildren(right);
             left->updateRectangle();
             left->parent = (*parent);
             right->updateRectangle();
@@ -171,7 +171,7 @@ public:
         else {
             left->parent = parent;
             right->parent = parent;
-            for (size_t i = 0; i < parent->count; i+= 1) {
+            for (int i = 0; i < parent->count; i+= 1) {
                 if (parent->children[i] == node ) {
                     parent->children[i] = left;
                     break;
@@ -189,7 +189,7 @@ public:
             return &root;
         }
         N ** current = &root;
-        N ** previous = &root;
+        //N ** previous = &root;
 
         vector<N **> zerosArea;
         while (current) {
@@ -380,7 +380,7 @@ public:
                 );
             }
             cout << "Current knearest" << endl;
-            for (int i = 0; i < knearest.size(); i += 1) {
+            for (size_t i = 0; i < knearest.size(); i += 1) {
                 knearest[i]->print();
             }
         }
@@ -390,8 +390,6 @@ public:
     vector<Polygon<T>> rangeSearch(Node<T>* node,Rectangle<T>* region,vector <Polygon<T> > &elementsInRange){
         vector <Node<T>*> childrenNode;
         childrenNode = node->getChildrenVector();
-        cout << node->get_rectangle()->get_strid() << endl;
-        //vector<Node<T>*>
         for(auto children : childrenNode){
 
             if(children->leaf)
@@ -399,8 +397,6 @@ public:
                 auto polygonsChildren = children->get_vector_polygons();
                 for(auto pc : polygonsChildren)
                 {
-                    cout << pc->min.x << " , " << pc->min.y << endl;
-                    cout << pc->max.x << " , " << pc->max.y << endl;
                     if((pc->min.x >= region->min.x && pc->min.y >= region->min.y) &&
                     (pc->max.x <= region->max.x && pc->max.y <= region->max.y)){
                         elementsInRange.push_back(*pc);
@@ -408,7 +404,6 @@ public:
                 }
             }
             else{
-
                     T l,b,r,t,l1,b1,r1,t1,l2,b2,r2,t2;
                     l1 = children->get_rectangle()->min.x;
                     l2 = region->min.x;
@@ -418,6 +413,7 @@ public:
                     r2 = region->max.x;
                     t1 = children->get_rectangle()->max.y;
                     t2 = region->max.y;
+
                     if(l1 > l2)
                         l = l1;
                     else
@@ -433,22 +429,14 @@ public:
                     if(t1 < t2)
                         t = t1;
                     else
-                        t = t2;
-                    P min(l,b);
-                    P max(r,t);
-                    cout << "x: " << l << " y: " << b << endl;
-                    cout << "x: " << r << " y: " << t << endl;
-                    if(((region->min.x <= l && region->min.y <= b) ||
+                        t = t2;                           
+
+                    if(((region->min.x <= l && region->min.y <= b) || 
                     (region->max.x >= r && region->max.y >= t)) && (r > l && t > b) )
-                    {
-                        cout << "lcs" << endl;
+                    {                
                         rangeSearch(children,region,elementsInRange);
                     }
             }
-        }
-        for(auto el : elementsInRange)
-        {
-            cout << el.id << " punto " << el.min.x << " , " << el.min.y << endl;
         }
         return elementsInRange;
     }
@@ -468,7 +456,6 @@ public:
             }
             return elementsInRange;
         } else {
-            cout << "region es " << region->min.x << " , " << region->min.y << " & " << region->max.x << " , " << region->max.y << endl;
             return rangeSearch(root, region,elementsInRange);
         }
     }
@@ -503,7 +490,7 @@ public:
         string json_string = "{\"polygons\": [ ";
 
         for(auto node : L){
-            for (size_t i = 0; i < node->count; i += 1) {
+            for (int i = 0; i < node->count; i += 1) {
                 json_string += "{\"id\":" + std::to_string(
                     node->polygons[i]->id
                 ) + ", \"region\":" + to_string(node->rectangle->id) + ",\"polygon\": [";

@@ -128,8 +128,8 @@ public:
 
     void getFartherChildren(int & a, int & b) {
         float maxDistance = std::numeric_limits<T>::min();
-        for (size_t i = 0; i < count; i += 1) {
-            for (size_t j = i + 1; j < count; j += 1) {
+        for (int i = 0; i < count; i += 1) {
+            for (int j = i + 1; j < count; j += 1) {
                 float newDistance = children[i]->rectangle->getDistance(*(children[j]->rectangle));
                 if (newDistance > maxDistance) {
                     maxDistance = newDistance;
@@ -142,7 +142,7 @@ public:
 
     vector<Node<T>* > getChildrenVector() {
         vector<Node<T>* > array;
-        for (size_t i = 0; i < count; i += 1) {
+        for (int i = 0; i < count; i += 1) {
             array.push_back(children[i]);
         }
         return array;
@@ -191,7 +191,7 @@ public:
     //for rangeSearch --Luis--
     vector<Polygon<T>*> get_vector_polygons(){
         vector<Polygon<T>*> array;
-        for (size_t i = 0; i < count; i += 1) {
+        for (int i = 0; i < count; i += 1) {
             array.push_back(polygons[i]);
         }
         return array;
@@ -205,7 +205,7 @@ public:
 
     T deadArea() {
         T polygonsArea = 0;
-        for (size_t i = 0; i < count; i += 1) {
+        for (int i = 0; i < count; i += 1) {
             polygonsArea += polygons[i]->getArea();
         }
         return getArea() - polygonsArea;

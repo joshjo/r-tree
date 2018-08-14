@@ -4,7 +4,6 @@
 #include "RTreeplus.h"
 #include <sstream>
 
-
 using namespace std;
 
 typedef int dtype;
@@ -54,5 +53,4 @@ int main(int argc, char *argv[]) {
     // Point<dtype> searchPoint(9, 8);
     // tree->nearestSearch(searchPoint, 0);
 
-    return 0;
 }
