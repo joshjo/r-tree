@@ -32,41 +32,10 @@ typedef Point<dtype> P;
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 
 int main() {
-    // HTTP-server at port 8080 using 1 thread
-    // Unless you do more heavy non-threaded processing in the resources,
-    // 1 thread is usually faster than several threads
     HttpServer server;
     server.config.port = 8090;
     RTree<dtype> * tree = new RTree<dtype>(5, 2);
 
-    vector<Point<dtype> > arr1;
-    arr1.push_back(*(new Point<dtype>(130, 187))); // 1
-    arr1.push_back(*(new Point<dtype>( 59, 298))); // 2
-    arr1.push_back(*(new Point<dtype>(274, 301))); // 3
-    arr1.push_back(*(new Point<dtype>(217, 149))); // 4
-    arr1.push_back(*(new Point<dtype>(302, 205))); // 5
-    arr1.push_back(*(new Point<dtype>(155, 322))); // 6
-    arr1.push_back(*(new Point<dtype>( 87, 158))); // 7
-    arr1.push_back(*(new Point<dtype>( 46, 236))); // 8
-    arr1.push_back(*(new Point<dtype>(166, 281))); // 9
-    arr1.push_back(*(new Point<dtype>(244, 324))); // 10
-
-    // for(int i = 0; i < val; i++)
-    //     // for(int j = 0;j<10;j++) {
-    //     arr1.push_back(*(new Point<dtype>(i / 10, i % 10)));
-    //     // }
-
-    // for (size_t i = 0; i < arr1.size(); i += 1) {
-    //     Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
-    //     tree->insert(p);
-    // }
-        // for(int j = 0;j<10;j++) {
-
-
-    // for (size_t i = 0; i < arr1.size(); i += 1) {
-    //     Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
-    //     tree->insert(p);
-    // }
 
     int count = 1;
     //Get | get regions and polygons
@@ -78,7 +47,7 @@ int main() {
         response->write_get(stream,header);
 
     };
-    
+
     //Get | get graph rtree
     server.resource["^/rtree/graph$"]["GET"] = [&tree](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         stringstream stream;
@@ -114,12 +83,7 @@ int main() {
                 pv.push_back(point);
             }
             int identifier_polygon = count++;
-            //char mychar = 'A';
-            // arr1.push_back(*(new Point<dtype>(414, 214)));
-            // cout << "arr1.push_back(*(new Point<dtype>(" << pv[0].to_string("", " ", " ") << ")));" << endl;
             tree->insert(new Polygon<dtype>(pv, identifier_polygon));
-            // tree->print();
-            // json_string = "{\"status\": true, \"identifier_polygon\":" + to_string (identifier_polygon) + "}";
             json_string = "{\"status\": true}";
             stream << json_string;
             response->write_get(stream,header);
@@ -220,8 +184,14 @@ int main() {
             read_json(request->content, pt);
             int m = pt.get_child("m").get_value<int>();
             int M = pt.get_child("M").get_value<int>();
-            tree = new RTree<dtype>(m,M);
-            json_string = "['status': true]";
+            if (m > M) {
+                int tmp = m;
+                m = M;
+                M = tmp;
+            }
+            cout << "M: " << M << "m: " << m << endl;
+            tree = new RTree<dtype>(M,m);
+            json_string = "{'status': true}";
             stream << json_string;
             response->write_get(stream,header);
         } catch (const exception &e) {
@@ -292,7 +262,7 @@ int main() {
         }
     };
 
-    //Options reset rtree 
+    //Options reset rtree
     server.resource["^/rtree/reset"]["OPTIONS"] = [](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
@@ -301,9 +271,7 @@ int main() {
         string json_string;
         SimpleWeb::CaseInsensitiveMultimap header;
         try {
-            ptree pt;
-            read_json(request->content, pt);
-            json_string = "['status': true]";
+            json_string = "{'status': true}";
             stream << json_string;
             response->write_get(stream,header);
         } catch (const exception &e) {

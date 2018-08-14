@@ -29,7 +29,7 @@ const extraView = document.getElementById('extra-view');
 const messageView = $('#messages');
 
 
-const draw = new SVG('svg-area').size('100%', '100%');
+let draw = new SVG('svg-area').size('100%', '100%');
 let newPolygon;
 let rangeRectangle;
 let currentPoints = [];
@@ -434,7 +434,20 @@ $('#logger-regions').on('click', '.select-region', (e) => {
 });
 
 $('#reset-button').on('click', () => {
-  console.log("muajaja");
+  api.post('reset', {
+    M: $('#input-M').val(),
+    m: $('#input-m').val(),
+  }).then((d) => {
+    $('#treeModal').modal('hide');
+    polygons = [];
+    regions = [];
+    drawRegions([]);
+    drawPolygons([]);
+    $('#logger-regions').html("");
+    // getRegions(true);
+    // $('svg-area').empty();
+    // draw = new SVG('svg-area').size('100%', '100%');
+  });
 });
 
 function getRegions(shouldDrawPolygons) {

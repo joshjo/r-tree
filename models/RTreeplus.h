@@ -55,7 +55,6 @@ public:
             shouldPrintLog = false;
         }
         N ** searchNode = search(polygon);
-        if (shouldPrintLog) cout << "insert start " << endl;
         if ( ! (*searchNode)) {
             (*searchNode) = new N (M, id++);
         }
@@ -116,7 +115,6 @@ public:
     }
 
     void reorderParent (N* & node) {
-        if (shouldPrintLog) cout << "reorder parent " << endl;
         if (node == NULL || node->count <= M) {
             return;
         }
@@ -181,7 +179,6 @@ public:
             parent->updateRectangle();
             reorderParent(parent);
         }
-        if (shouldPrintLog) cout << "finish reorder parent " << endl;
     }
 
     N ** search(Polygon<T> * polygon) {
@@ -204,13 +201,11 @@ public:
                 float oldArea = children->rectangle->getArea();
                 float newArea = children->rectangle->getSimulatedArea(polygon);
                 float newDistance = newArea - oldArea;
-                if (shouldPrintLog) cout << "new Distance: " << newDistance << " i: " << i << endl;
                 if (newDistance < minDistance) {
                     index = i;
                     minDistance = newDistance;
                 }
                 if ( ! newDistance && children->leaf) {
-                    cout << "index: " << i << endl;
                     zerosArea.push_back(&(node->children[i]));
                 }
             }
@@ -219,7 +214,6 @@ public:
         if (zerosArea.size() > 1) {
             T minArea = inf;
             size_t index;
-            cout << "zeros: " << zerosArea.size() << endl;
             for (size_t i = 0; i < zerosArea.size(); i += 1) {
                 T deadArea = (*(zerosArea[i]))->deadArea();
                 if (deadArea < minArea) {
@@ -429,11 +423,11 @@ public:
                     if(t1 < t2)
                         t = t1;
                     else
-                        t = t2;                           
+                        t = t2;
 
-                    if(((region->min.x <= l && region->min.y <= b) || 
+                    if(((region->min.x <= l && region->min.y <= b) ||
                     (region->max.x >= r && region->max.y >= t)) && (r > l && t > b) )
-                    {                
+                    {
                         rangeSearch(children,region,elementsInRange);
                     }
             }
