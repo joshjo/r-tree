@@ -60,6 +60,9 @@ function drawLoggerBody(regions) {
   let htmlContent = '';
   for (let key in regions) {
     const region = regions[key];
+    if ( ! region.isLeaf) {
+      continue;
+    }
     htmlContent += `<div class="select-region" style="background-color: ${region.color}" data-region="${region.id}" id="select-r${region.id}"><span>R${region.id}</span></div>`;
   }
 
@@ -187,7 +190,6 @@ draw.click((e) => {
     const $k = $('#nearest-k');
     if ($k) {
       const k = $k.val();
-      // console.log()
       api.post("nearest", {
         polygon: [point], k
       }).then((d) => {
@@ -199,7 +201,6 @@ draw.click((e) => {
     const polygon = [
       [attrs.x, attrs.y],
       [attrs.x + attrs.width, attrs.y + attrs.height],
-      // [e.offsetX, e.offsetY]
     ];
     console.log(polygon, [e.offsetX, e.offsetY]);
     api.post("range", {
@@ -229,17 +230,37 @@ function drawRegions(regions) {
   }
   currentRegions = [];
   for (let i = 0; i < regions.length; i += 1) {
-    const color = getRandomColor();
-    const { id, polygon } = regions[i];
+    const { id, polygon, color, isLeaf } = regions[i];
     const firstPoint = polygon[0];
-    const textSvg = draw.text(`R${id}`).move(
-      firstPoint[0] + 3, firstPoint[1] + 3
-    ).fill(color).font({ size: 18 });
+    const textColor = isLeaf ? color : '#ffffffaa';
+    const textLabel = isLeaf ? 'R' : 'P';
+    // const posit
+    const textSvg = draw.text(`${textLabel}${id}`).fill(textColor).font({ size: 16 });
+    if (isLeaf) {
+      textSvg.move(
+        polygon[0][0] + 3, polygon[0][1] + 3
+      );
+    } else {
+      textSvg.move(
+        polygon[3][0] + 3, polygon[3][1] + 3
+      );
+    }
+    let stroke = {
+      width: 2,
+      color,
+    }
+    if ( !isLeaf ) {
+      stroke = {
+        width: 1,
+        color: '#ffffff88',
+      }
+    }
     const polygonSvg = draw.polygon(
       polygonToString(polygon)
-    ).fill("none").stroke({
-      width: 1, color
-    });
+    ).fill("none").stroke(stroke);
+    if (!isLeaf) {
+      polygonSvg.attr({'stroke-dasharray': [10, 10]});
+    }
     mapRegions[id] = regions[i];
     mapRegions[id].color = color;
     mapRegions[id].polygons = [];
@@ -264,12 +285,10 @@ function drawPolygons(polygons) {
       mapPolygons[key].text.remove();
     }
   }
-  console.log('mapPolygons[key]', mapPolygons);
   for (let i = 0; i < polygons.length; i += 1) {
     const region = mapRegions[polygons[i].region];
     let svgPolygon, text;
     let point = point = polygons[i].polygon[0];
-    // if (mapPolygons[key])
     if (polygons[i].polygon.length > 1) {
       svgPolygon = draw.polygon(
         polygonToString(polygons[i].polygon)
@@ -285,8 +304,8 @@ function drawPolygons(polygons) {
       }).move(point[0] - 6, point[1] - 6);
     }
     text = draw.text(`${polygons[i].id}`).move(
-        point[0] + 10, point[1] + 10
-      ).fill('white').font({ size: 16 });
+        point[0] + 6, point[1] + 7
+      ).fill(region.color).font({ size: 10 });
     mapPolygons[polygons[i].id] = {
       svg: svgPolygon,
       text,
@@ -306,10 +325,6 @@ function rePaintPolygons(ids, mode=RESTART) {
     if (mode === SEARCH) {
       styles = kSearchPolygonColors;
     }
-    // if (mode === TRANSPARENT) {
-    //   styles = transparentColors;
-    //   mapPolygons[ids[i]].text.attr({ opacity: 0});
-    // }
     if (styles !== undefined) {
       mapPolygons[ids[i]].svg.attr(styles.polygonColor).stroke(styles.polygonStroke);
     }
@@ -432,8 +447,4 @@ function getRegions(shouldDrawPolygons, successfoo=()=>{}) {
 }
 
 getRegions(true);
-
-// api.delete('').then(d => {
-//   console.log('d', d);
-// });
 

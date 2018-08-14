@@ -4,6 +4,19 @@
 #include "Polygon.h"
 #include "Rectangle.h"
 
+string getRandomColor(){
+    char chars[8] = "9abcdef";
+    string color = "#";
+
+    for (int i=0; i<6; i++) {
+        // Choose random digit
+        auto index = rand() % 7;
+
+        // Push random digit to array
+        color.push_back(chars[index]);
+    }
+    return color;
+}
 
 template <class T>
 class Node
@@ -21,10 +34,11 @@ private:
     Box * rectangle;
     bool leaf;
     int id;
+    string color;
 
 public:
     Node(){}
-    Node(int M, int id, bool leaf = true)
+    Node(int M, int id, bool leaf = true, string color="")
     {
         this->count = 0;
         this->parent = 0;
@@ -37,6 +51,11 @@ public:
         this->children = new N * [M + 1];
         this->polygons = new Poly * [M + 1];
         this->leaf = leaf;
+        if (color == "") {
+            this->color = getRandomColor();
+        } else {
+            this->color = color;
+        }
     }
 
     void updateRectangle(bool recursive = false) {
