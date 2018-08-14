@@ -27,6 +27,17 @@ html {
 
 }
 
+.top-left {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10000000;
+}
+
+.modal-lg {
+    max-width: 90% !important;
+}
+
 svg text {
     -webkit-touch-callout: none;
     -webkit-user-select: none;

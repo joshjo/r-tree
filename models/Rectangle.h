@@ -58,6 +58,22 @@ class Rectangle
             );
         }
 
+        float getArea() {
+            return (max.x - min.x) * (max.y - min.y);
+        }
+
+        float getSimulatedArea(Polygon<T> * polygon) {
+            float minX = (min.x < polygon->min.x) ? min.x : polygon->min.x;
+            float minY = (min.y < polygon->min.y) ? min.y : polygon->min.y;
+
+            float maxX = (max.x > polygon->max.x) ? max.x : polygon->max.x;
+            float maxY = (max.y > polygon->max.y) ? max.y : polygon->max.y;
+
+            // cout << "minX"
+
+            return (maxX - minX) * (maxY - minY);
+        }
+
         float getDistance(Polygon<T> & other) {
             vector<P> thisbox = this->get_box();
             vector<P> otherbox = other.get_box();

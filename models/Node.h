@@ -1,7 +1,6 @@
 #ifndef NODE_H
 #define NODE_H
 
-
 #include "Polygon.h"
 #include "Rectangle.h"
 
@@ -189,64 +188,73 @@ class Node
 
     // //float getDistace()
     // //distance = sqrt(pow((x1 - x2),2) +pow((y1 - y2),2));
-    // float getArea()
-    // {
-    //     return ((rectangle->max.x - rectangle->min.x)*(rectangle->max.y - rectangle->min.y));
-    // }
+    T getArea() {
+        return ((
+            rectangle->max.x - rectangle->min.x
+        ) * (rectangle->max.y - rectangle->min.y));
+    }
 
-    // float getSimulatedArea(Polygon<T> * polygon)
-    // {
-    //     P min = rectangle->min;
-    //     P max = rectangle->max;
+    T deadArea() {
+        T polygonsArea = 0;
+        for (size_t i = 0; i < count; i += 1) {
+            polygonsArea += polygons[i]->getArea();
+        }
+        return getArea() - polygonsArea;
+    }
 
-    //     if(polygon->points[0].x < rectangle->min.x)
-    //         rectangle->min.x = polygon->points[0].x;
+    T getSimulatedArea(Polygon<T> * polygon)
+    {
+        P min = rectangle->min;
+        P max = rectangle->max;
 
-    //     if(polygon->points[0].x > rectangle->max.x)
-    //         rectangle->max.x = polygon->points[0].x;
+        if(polygon->points[0].x < rectangle->min.x)
+            rectangle->min.x = polygon->points[0].x;
 
-    //     if(polygon->points[0].y < rectangle->min.y)
-    //         rectangle->min.y = polygon->points[0].y;
+        if(polygon->points[0].x > rectangle->max.x)
+            rectangle->max.x = polygon->points[0].x;
 
-    //     if(polygon->points[0].y > rectangle->max.y)
-    //         rectangle->max.y = polygon->points[0].y;
+        if(polygon->points[0].y < rectangle->min.y)
+            rectangle->min.y = polygon->points[0].y;
 
-    //     float area = getArea();
+        if(polygon->points[0].y > rectangle->max.y)
+            rectangle->max.y = polygon->points[0].y;
 
-    //     rectangle->min = min;
-    //     rectangle->max = max;
+        T area = getArea();
 
-    //     return area;
-    // }
+        rectangle->min = min;
+        rectangle->max = max;
 
-    // float getSimulatedArea(Node<T> * node)
-    // {
-    //     float minX = rectangle->min.x;
-    //     float maxX = rectangle->max.x;
-    //     float minY = rectangle->min.y;
-    //     float maxY = rectangle->max.y;
+        return area;
+    }
 
-    //     if(node->rectangle->min.x < rectangle->min.x)
-    //         rectangle->min.x = node->rectangle->min.x;
+    float getSimulatedArea(Node<T> * node)
+    {
+        float minX = rectangle->min.x;
+        float maxX = rectangle->max.x;
+        float minY = rectangle->min.y;
+        float maxY = rectangle->max.y;
 
-    //     if(node->rectangle->max.x > rectangle->max.x)
-    //         rectangle->max.x = node->rectangle->max.x;
+        if(node->rectangle->min.x < rectangle->min.x)
+            rectangle->min.x = node->rectangle->min.x;
 
-    //     if(node->rectangle->min.y < rectangle->min.y)
-    //         rectangle->min.y = node->rectangle->min.y;
+        if(node->rectangle->max.x > rectangle->max.x)
+            rectangle->max.x = node->rectangle->max.x;
 
-    //     if(node->rectangle->max.y > rectangle->max.y)
-    //         rectangle->max.y = node->rectangle->max.y;
+        if(node->rectangle->min.y < rectangle->min.y)
+            rectangle->min.y = node->rectangle->min.y;
 
-    //     float area = getArea();
+        if(node->rectangle->max.y > rectangle->max.y)
+            rectangle->max.y = node->rectangle->max.y;
 
-    //     rectangle->min.x = minX;
-    //     rectangle->max.x = maxX;
-    //     rectangle->min.y = minY;
-    //     rectangle->max.y = maxY;
+        float area = getArea();
 
-    //     return area;
-    // }
+        rectangle->min.x = minX;
+        rectangle->max.x = maxX;
+        rectangle->min.y = minY;
+        rectangle->max.y = maxY;
+
+        return area;
+    }
 
     friend class RTree<T>;
 };

@@ -40,35 +40,33 @@ int main() {
     RTree<dtype> * tree = new RTree<dtype>(5, 2);
 
     vector<Point<dtype> > arr1;
-    // arr1.push_back(*(new Point<dtype>(388,131  ))); // 1
-    // arr1.push_back(*(new Point<dtype>(246,375  ))); // 2
-    // arr1.push_back(*(new Point<dtype>(595,339  ))); // 3
-    // arr1.push_back(*(new Point<dtype>(533,158  ))); // 4
-    // arr1.push_back(*(new Point<dtype>(295,227  ))); // 5
-    // arr1.push_back(*(new Point<dtype>(905,294  ))); // 6
+    arr1.push_back(*(new Point<dtype>(130, 187))); // 1
+    arr1.push_back(*(new Point<dtype>( 59, 298))); // 2
+    arr1.push_back(*(new Point<dtype>(274, 301))); // 3
+    arr1.push_back(*(new Point<dtype>(217, 149))); // 4
+    arr1.push_back(*(new Point<dtype>(302, 205))); // 5
+    arr1.push_back(*(new Point<dtype>(155, 322))); // 6
+    arr1.push_back(*(new Point<dtype>( 87, 158))); // 7
+    arr1.push_back(*(new Point<dtype>( 46, 236))); // 8
+    arr1.push_back(*(new Point<dtype>(166, 281))); // 9
+    arr1.push_back(*(new Point<dtype>(244, 324))); // 10
 
-    // arr1.push_back(*(new Point<dtype>(546,248  )));
-    // arr1.push_back(*(new Point<dtype>(754,371  )));
-    // arr1.push_back(*(new Point<dtype>(440,229  )));
+    // for(int i = 0; i < val; i++)
+    //     // for(int j = 0;j<10;j++) {
+    //     arr1.push_back(*(new Point<dtype>(i / 10, i % 10)));
+    //     // }
 
-    // arr1.push_back(*(new Point<dtype>(734,108  ))); // 7
-    // arr1.push_back(*(new Point<dtype>(196,127  ))); // 8
-    // arr1.push_back(*(new Point<dtype>(345,470  ))); // 9
-    // arr1.push_back(*(new Point<dtype>(808,95  )));  // 10
-
-    for(int i = 0; i < 100; i++){
-        int x = 80;
-        int a = (i / 10) * x;
-        int b = (i % 10) * x;
-        arr1.push_back(*(new Point<dtype>(a, b)));
-    }
+    // for (size_t i = 0; i < arr1.size(); i += 1) {
+    //     Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
+    //     tree->insert(p);
+    // }
         // for(int j = 0;j<10;j++) {
 
 
-    for (size_t i = 0; i < arr1.size(); i += 1) {
-        Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
-        tree->insert(p);
-    }
+    // for (size_t i = 0; i < arr1.size(); i += 1) {
+    //     Polygon<dtype>* p = new Polygon<dtype>(arr1[i], i + 1);
+    //     tree->insert(p);
+    // }
 
     int count = 1;
     //Get rtree
@@ -109,7 +107,7 @@ int main() {
             // arr1.push_back(*(new Point<dtype>(414, 214)));
             // cout << "arr1.push_back(*(new Point<dtype>(" << pv[0].to_string("", " ", " ") << ")));" << endl;
             int identifier_region = tree->insert(new Polygon<dtype>(pv, identifier_polygon));
-            tree->print();
+            // tree->print();
             // json_string = "{\"status\": true, \"identifier_polygon\":" + to_string (identifier_polygon) + "}";
             json_string = "{\"status\": true}";
             stream << json_string;

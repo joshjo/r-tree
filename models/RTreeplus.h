@@ -49,7 +49,13 @@ public:
     }
 
     int insert(Polygon<T> * polygon) {
+        if (polygon->id == 10) {
+            shouldPrintLog = true;
+        } else {
+            shouldPrintLog = false;
+        }
         N ** searchNode = search(polygon);
+        if (shouldPrintLog) cout << "insert start " << endl;
         if ( ! (*searchNode)) {
             (*searchNode) = new N (M, id++);
         }
@@ -85,16 +91,12 @@ public:
 
             if ( ! (*parent)) {
                 (*parent) = new N(M, 0, false);
-                // delete root;
+                delete root;
                 (*parent)->addChildren(left);
                 root = (*parent);
             } else {
                 // delete (*searchNode);
                 (*searchNode) = left;
-            }
-
-            if (shouldPrintLog) {
-                cout << "parent    " << (*parent) << " " << (*parent)->count << endl;
             }
 
             int index = (*parent)->addChildren(right);
@@ -111,6 +113,7 @@ public:
     }
 
     void reorderParent (N* & node) {
+        if (shouldPrintLog) cout << "reorder parent " << endl;
         if (node == NULL || node->count <= M) {
             return;
         }
@@ -174,6 +177,7 @@ public:
             parent->updateRectangle();
             reorderParent(parent);
         }
+        if (shouldPrintLog) cout << "finish reorder parent " << endl;
     }
 
     N ** search(Polygon<T> * polygon) {
@@ -181,6 +185,9 @@ public:
             return &root;
         }
         N ** current = &root;
+        N ** previous = &root;
+
+        vector<N **> zerosArea;
         while (current) {
             N * node = (*current);
             if (node->leaf) {
@@ -189,16 +196,34 @@ public:
             float minDistance = std::numeric_limits<T>::max();
             int index = -1;
             for (int i = 0; i < node->count; i += 1) {
-                float newDistance = node->children[i]->rectangle->getDistance(*polygon);
+                N * children = node->children[i];
+                float oldArea = children->rectangle->getArea();
+                float newArea = children->rectangle->getSimulatedArea(polygon);
+                float newDistance = newArea - oldArea;
+                if (shouldPrintLog) cout << "new Distance: " << newDistance << " i: " << i << endl;
                 if (newDistance < minDistance) {
                     index = i;
                     minDistance = newDistance;
                 }
+                if ( ! newDistance && children->leaf) {
+                    cout << "index: " << i << endl;
+                    zerosArea.push_back(&(node->children[i]));
+                }
             }
-            // if (shouldPrintLog) {
-            //     cout << "min Distance: " << minDistance << " i: "
-            // }
             current = &(node->children[index]);
+        }
+        if (zerosArea.size() > 1) {
+            T minArea = inf;
+            size_t index;
+            cout << "zeros: " << zerosArea.size() << endl;
+            for (size_t i = 0; i < zerosArea.size(); i += 1) {
+                T deadArea = (*(zerosArea[i]))->deadArea();
+                if (deadArea < minArea) {
+                    minArea = deadArea;
+                    index = i;
+                }
+            }
+            current = zerosArea[index];
         }
         return current;
     }
@@ -451,10 +476,12 @@ public:
         json_string.pop_back();
         json_string += "], \"regions\": [ ";
 
+        L.push_back(root);
+
         for (auto node : L) {
-            // if (node->id == root->id) {
-            //     continue;
-            // }
+            if (!root) {
+                continue;
+            }
             json_string += "{\"id\":" + std::to_string(node->rectangle->id) + ",\"polygon\": [";
 
             for (auto point: node->get_rectangle()->get_box()) {

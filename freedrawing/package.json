@@ -22,7 +22,8 @@
     "lodash": "4.17.10",
     "popper.js": "^1.14.4",
     "svg.draw.js": "^2.0.3",
-    "svg.js": "^2.6.5"
+    "svg.js": "^2.6.5",
+    "viz.js": "^2.0.0"
   },
   "devDependencies": {
     "babel-core": "6.26.3",

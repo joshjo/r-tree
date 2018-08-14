@@ -37,16 +37,20 @@ class Polygon
             getMinMax();
         }
 
-        float getDistance(Polygon<T> & other) {
+        T getArea() {
+            return (max.x - min.x) * (max.y - min.y);
+        }
+
+        T getDistance(Polygon<T> & other) {
             vector<P> thisbox = this->get_box();
             vector<P> otherbox = other.get_box();
 
-            float minDistance = std::numeric_limits<T>::max();
+            T minDistance = std::numeric_limits<T>::max();
             for(auto pointBox1 : thisbox)
             {
                 for(auto pointBox2 : otherbox)
                 {
-                    float distance = sqrt(pow(pointBox1.x-pointBox2.x,2) + pow(pointBox1.y-pointBox2.y,2));
+                    T distance = sqrt(pow(pointBox1.x-pointBox2.x,2) + pow(pointBox1.y-pointBox2.y,2));
                     if(minDistance > distance)
                     {
                         minDistance = distance;

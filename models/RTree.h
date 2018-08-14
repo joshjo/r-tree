@@ -664,47 +664,8 @@ class RTree
         }
         get_all(root, leafs, notleafs);
     }
-    vector<Polygon<T>> rangeSearch(Node<T>* node,Rectangle<T>* region){
-        vector <Node<T>*> childrenNode;
-        vector <Polygon<T>> elementsInRange;
-        childrenNode = node->getChildrenVector();
 
-        for(auto children : childrenNode){
-            if(children->leaf)
-            {
-                auto polygonsChildren = children->get_polygons();
-                for(auto pc : polygonsChildren)
-                {
-                    if((pc->get_polygons()->min.x >= region->min.x && pc->get_polygons()->min.y >= region->min.y) &&
-                    (pc->get_polygons()->max.x <= region->max.x && pc->get_polygons()->max.y <= region->max.y)){
-                        elementsInRange.push_back(*(children->get_polygons()));
-                    }
-                }
 
-            }
-            else{
-                if((children->get_rectangle()->min.x >= region->min.x && children->get_rectangle()->min.y >= region->min.y) &&
-                (children->get_rectangle()->max.x <= region->max.x && children->get_rectangle()->max.y <= region->max.y)){
-                    return rangeSearch(children,region);
-                }
-            }
-        }
-        return elementsInRange;
-    }
-    vector <Polygon<T>> rangeSearch(Rectangle<T>* region){
-        vector <Polygon<T>> elementsInRange;
-        if(root->leaf){
-            if((root->get_polygons()->min.x >= region->min.x && root->get_polygons()->min.y >= region->min.y) &&
-            (root->get_polygons()->max.x <= region->max.x && root->get_polygons()->max.y <= region->max.y)){
-                elementsInRange.push_back(*(root->get_polygons()));
-            }
-                return elementsInRange;
-        }
-        else{
-            return rangeSearch(root,region);
-        }
-    }
-    
     vector <Polygon<T> * > nearestSearch(P point, size_t k) {
         /*
         - We use 2 arrays:
