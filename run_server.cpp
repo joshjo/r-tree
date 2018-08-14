@@ -69,7 +69,7 @@ int main() {
     // }
 
     int count = 1;
-    //Get rtree
+    //Get | get regions and polygons
     server.resource["^/rtree$"]["GET"] = [&tree](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         stringstream stream;
         SimpleWeb::CaseInsensitiveMultimap header;
@@ -78,22 +78,23 @@ int main() {
         response->write_get(stream,header);
 
     };
-        server.resource["^/tree$"]["GET"] = [&tree](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
+    
+    //Get | get graph rtree
+    server.resource["^/rtree/graph$"]["GET"] = [&tree](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         stringstream stream;
         SimpleWeb::CaseInsensitiveMultimap header;
-        // string json_string = "{\"polygon\": [";
-                    cout << tree->graphviz() << endl;
-        stream << tree->get_json_string();
+        string json_string = "{\"graph\": [";
+        json_string += tree->graphviz();
+        json_string += "]}";
+        stream << json_string;
         response->write_get(stream,header);
-
     };
 
-    //Post rtree
+    //Post | add polygons
     server.resource["^/rtree$"]["POST"] = [&tree, &count](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
-        // Polygon polygon;
         vector<P> pv;
         vector<dtype> v;
         stringstream stream;
@@ -113,10 +114,10 @@ int main() {
                 pv.push_back(point);
             }
             int identifier_polygon = count++;
-            char mychar = 'A';
+            //char mychar = 'A';
             // arr1.push_back(*(new Point<dtype>(414, 214)));
             // cout << "arr1.push_back(*(new Point<dtype>(" << pv[0].to_string("", " ", " ") << ")));" << endl;
-            int identifier_region = tree->insert(new Polygon<dtype>(pv, identifier_polygon));
+            tree->insert(new Polygon<dtype>(pv, identifier_polygon));
             // tree->print();
             // json_string = "{\"status\": true, \"identifier_polygon\":" + to_string (identifier_polygon) + "}";
             json_string = "{\"status\": true}";
@@ -130,7 +131,7 @@ int main() {
         }
     };
 
-    //Post search/nearest
+    //Post | nearest search
     server.resource["^/rtree/nearest$"]["POST"] = [&tree](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
@@ -148,7 +149,7 @@ int main() {
                     v.push_back(value);
                 }
             }
-            int k = pt.get_child("k").get_value<int>();
+            size_t k = pt.get_child("k").get_value<size_t>();
             P point(v[0], v[1]);
 
             vector <Polygon<dtype> * > array = tree->nearestSearch(point, k);
@@ -158,7 +159,6 @@ int main() {
             json_string.pop_back();
             json_string += "]}";
             tree->print();
-            cout << endl << endl << endl;
             stream << json_string;
             response->write_get(stream,header);
         } catch (const exception &e) {
@@ -169,7 +169,7 @@ int main() {
         }
     };
 
-    //Post search/range
+    //Post | range search
     server.resource["^/rtree/range$"]["POST"] = [&tree](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
@@ -196,7 +196,6 @@ int main() {
             }
             json_string.pop_back();
             json_string += "]}";
-            cout << "response = " << json_string << endl;
             stream << json_string;
             //use polygonVector for search
             response->write_get(stream,header);
@@ -208,7 +207,32 @@ int main() {
         }
     };
 
+    //Post | reset rtree
+    server.resource["^/rtree/reset$"]["POST"] = [&tree](
+            shared_ptr<HttpServer::Response> response,
+            shared_ptr<HttpServer::Request> request
+        ) {
+        stringstream stream;
+        string json_string;
+        SimpleWeb::CaseInsensitiveMultimap header;
+        try {
+            ptree pt;
+            read_json(request->content, pt);
+            int m = pt.get_child("m").get_value<int>();
+            int M = pt.get_child("M").get_value<int>();
+            tree = new RTree<dtype>(m,M);
+            json_string = "['status': true]";
+            stream << json_string;
+            response->write_get(stream,header);
+        } catch (const exception &e) {
+            response->write(
+                SimpleWeb::StatusCode::client_error_bad_request,
+                e.what()
+            );
+        }
+    };
 
+    //Option range search
     server.resource["^/rtree/range$"]["OPTIONS"] = [](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
@@ -248,7 +272,7 @@ int main() {
         }
     };
 
-    //Option rtree
+    //Option nearest search
     server.resource["^/rtree/nearest$"]["OPTIONS"] = [](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
@@ -268,20 +292,17 @@ int main() {
         }
     };
 
-    //Delete rtree
-    server.resource["^/rtree$"]["DELETE"] = [&tree](
+    //Options reset rtree 
+    server.resource["^/rtree/reset"]["OPTIONS"] = [](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
         stringstream stream;
-        string json_string = "{}";
+        string json_string;
         SimpleWeb::CaseInsensitiveMultimap header;
         try {
             ptree pt;
             read_json(request->content, pt);
-            int id = pt.get_child("id").get_value<int>();
-            cout << id << endl;
-            //use PolygonVector for delete pg
             json_string = "['status': true]";
             stream << json_string;
             response->write_get(stream,header);
@@ -293,16 +314,16 @@ int main() {
         }
     };
 
-    //delete/reset rtree
-    server.resource["^/rtree$"]["DELETE"] = [&tree](
+    //Options graph rtree
+    server.resource["^/rtree/graph$"]["OPTIONS"] = [](
             shared_ptr<HttpServer::Response> response,
             shared_ptr<HttpServer::Request> request
         ) {
+        cout << "method: " << request->path << endl;
         stringstream stream;
-        string json_string = "{}";
+        string json_string;
         SimpleWeb::CaseInsensitiveMultimap header;
         try {
-            tree = new RTree<dtype>(2,5);
             json_string = "['status': true]";
             stream << json_string;
             response->write_get(stream,header);
@@ -313,7 +334,6 @@ int main() {
             );
         }
     };
-
     server.on_error = [](shared_ptr<HttpServer::Request> /*request*/, const SimpleWeb::error_code & /*ec*/) {
         // Handle errors here
         // Note that connection timeouts will also call this handle with ec set to SimpleWeb::errc::operation_canceled
