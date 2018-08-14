@@ -169,6 +169,7 @@
             <div id="extra-view"></div>
           </div>
           <div class="group-members">
+            <button class="btn btn-warning" data-toggle="modal" data-target="#treeModal">RESET TREE</button>
             <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
               <span>Group members</span>
               <a class="d-flex align-items-center text-muted" href="#">
@@ -202,20 +203,30 @@
 
 
   <div class="modal fade" id="treeModal" tabindex="-1" role="dialog" aria-labelledby="treeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="treeModalLabel">Modal title</h5>
+          <h5 class="modal-title" id="treeModalLabel">Reset tree</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div id="graph" class="modal-body">
-
+        <div class="modal-body">
+          <form>
+            Enter a valid M and m.
+            <div class="form-group">
+              <input type="number" min="1" max="50" value="5" class="form-control" id="input-M" aria-describedby="emailHelp" placeholder="M">
+              <small id="emailHelp" class="form-text text-muted">(+) Maximum number of entries per node.</small>
+            </div>
+            <div class="form-group">
+              <input type="number" min="1" max="50" value="2" class="form-control" id="input-m" aria-describedby="emailHelp" placeholder="m">
+              <small id="emailHelp" class="form-text text-muted">(-) Minimum number of entries per node.</small>
+            </div>
+          </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary">Save changes</button>
+          <button  id="reset-button" type="button" class="btn btn-primary">Save changes</button>
         </div>
       </div>
     </div>

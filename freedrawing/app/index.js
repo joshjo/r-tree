@@ -431,18 +431,24 @@ $('#logger-regions').on('click', '.select-region', (e) => {
     mapPolygons[polygonId].svg.attr({ opacity: isActive ? 1 : 0 });
     mapPolygons[polygonId].text.attr({ opacity: isActive ? 1 : 0 });
   }
-})
+});
 
+$('#reset-button').on('click', () => {
+  console.log("muajaja");
+});
 
-function getRegions(shouldDrawPolygons, successfoo=()=>{}) {
+function getRegions(shouldDrawPolygons) {
   api.get().then((d) => {
     polygons = d.data.polygons;
     regions = d.data.regions;
-    drawRegions(regions);
-    if (shouldDrawPolygons) {
-      drawPolygons(polygons);
+    if (polygons.length) {
+      drawRegions(regions);
+      if (shouldDrawPolygons) {
+        drawPolygons(polygons);
+      }
+    } else {
+      $('#treeModal').modal('show');
     }
-    successfoo();
   });
 }
 
