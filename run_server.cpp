@@ -147,6 +147,8 @@ int main() {
             }
             json_string.pop_back();
             json_string += "]}";
+            tree->print();
+            cout << endl << endl << endl;
             stream << json_string;
             response->write_get(stream,header);
         } catch (const exception &e) {
