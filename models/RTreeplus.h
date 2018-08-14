@@ -65,7 +65,7 @@ public:
             int a = -1, b = -1;
             (*searchNode)->getFartherPolygons(a, b);
 
-            N * left = new N(M, (*searchNode)->id);
+            N * left = new N(M, (*searchNode)->id, true, (*searchNode)->color);
             N * right = new N(M, id++);
             Poly * polygonA = (*searchNode)->polygons[a];
             Poly * polygonB = (*searchNode)->polygons[b];
@@ -121,7 +121,8 @@ public:
             return;
         }
         int leftId = (node->id > 0) ? node->id : id++;
-        N * left = new N(M, leftId, false);
+        string color = (node->id > 0) ? "" : node->color;
+        N * left = new N(M, leftId, false, color);
         N * right = new N(M, id++, false);
 
         int a = -1, b = -1;
@@ -389,7 +390,6 @@ public:
     vector<Polygon<T>> rangeSearch(Node<T>* node,Rectangle<T>* region,vector <Polygon<T> > &elementsInRange){
         vector <Node<T>*> childrenNode;
         childrenNode = node->getChildrenVector();
-        //vector<Node<T>*> 
         for(auto children : childrenNode){
 
             if(children->leaf)
@@ -425,7 +425,7 @@ public:
                     if(r1 < r2)
                         r = r1;
                     else
-                        r = r2; 
+                        r = r2;
                     if(t1 < t2)
                         t = t1;
                     else
@@ -506,13 +506,13 @@ public:
         json_string.pop_back();
         json_string += "], \"regions\": [ ";
 
-        L.push_back(root);
+
 
         for (auto node : L) {
             if (!root) {
                 continue;
             }
-            json_string += "{\"id\":" + std::to_string(node->rectangle->id) + ",\"polygon\": [";
+            json_string += "{\"id\":" + std::to_string(node->rectangle->id) + ",\"isLeaf\": true" + ",\"color\":\"" + node->color + "\",\"polygon\": [";
 
             for (auto point: node->get_rectangle()->get_box()) {
                 json_string += point.to_string();
@@ -520,6 +520,26 @@ public:
             json_string.pop_back();
             json_string += "]},";
         }
+
+        // json_string.pop_back();
+        // json_string += "], \"parents\": [ ";
+
+        for (auto node : NL) {
+            if (!root) {
+                continue;
+            }
+            if (node->leaf) {
+                continue;
+            }
+            json_string += "{\"id\":" + std::to_string(node->rectangle->id) + ",\"isLeaf\": false" + ",\"color\":\"" + node->color + "\",\"polygon\": [";
+
+            for (auto point: node->get_rectangle()->get_box()) {
+                json_string += point.to_string();
+            }
+            json_string.pop_back();
+            json_string += "]},";
+        }
+
         json_string.pop_back();
         json_string += "]}";
         return json_string;
