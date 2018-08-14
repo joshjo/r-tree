@@ -198,8 +198,10 @@ draw.click((e) => {
     const attrs = rangeRectangle.attr();
     const polygon = [
       [attrs.x, attrs.y],
-      [attrs.x + attrs.width, attrs.x + attrs.height]
+      [attrs.x + attrs.width, attrs.y + attrs.height],
+      // [e.offsetX, e.offsetY]
     ];
+    console.log(polygon, [e.offsetX, e.offsetY]);
     api.post("range", {
       polygon
     }).then(d => {

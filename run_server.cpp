@@ -76,6 +76,16 @@ int main() {
         // string json_string = "{\"polygon\": [";
         stream << tree->get_json_string();
         response->write_get(stream,header);
+
+    };
+        server.resource["^/tree$"]["GET"] = [&tree](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
+        stringstream stream;
+        SimpleWeb::CaseInsensitiveMultimap header;
+        // string json_string = "{\"polygon\": [";
+                    cout << tree->graphviz() << endl;
+        stream << tree->get_json_string();
+        response->write_get(stream,header);
+
     };
 
     //Post rtree
@@ -186,6 +196,7 @@ int main() {
             }
             json_string.pop_back();
             json_string += "]}";
+            cout << "response = " << json_string << endl;
             stream << json_string;
             //use polygonVector for search
             response->write_get(stream,header);
@@ -294,7 +305,6 @@ int main() {
             tree = new RTree<dtype>(2,5);
             json_string = "['status': true]";
             stream << json_string;
-            response->write_get(stream,header);
             response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(

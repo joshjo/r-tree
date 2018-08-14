@@ -46,7 +46,6 @@ int main(int argc, char *argv[]) {
         tree->insert(p);
     }
 
-
     // cout << tree->getDistance(p1,p2) << endl;
 
     // cout << tree->graphviz() << endl;
