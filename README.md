@@ -42,6 +42,8 @@ Run the server: `./build/run_server`
 
 #### Compile and run Client
 
-....
+```sh
+cd freedrawing/dist
+open index.html
+```
 
-Direct your favorite browser to for instance http://localhost:8080/
