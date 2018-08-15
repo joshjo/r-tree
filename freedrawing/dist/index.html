@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width">
+  <title>R Tree</title>
+  <style>
+    body {
+      font-size: .875rem;
+    }
+
+    .feather {
+      width: 16px;
+      height: 16px;
+      vertical-align: text-bottom;
+    }
+
+    /*
+    * Sidebar
+    */
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100; /* Behind the navbar */
+      box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    }
+
+    .sidebar-sticky {
+      position: relative;
+      top: 0;
+      height: calc(100vh - 48px);
+      padding-top: .5rem;
+      overflow-x: hidden;
+      overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+    }
+
+    @supports ((position: -webkit-sticky) or (position: sticky)) {
+      .sidebar-sticky {
+        position: -webkit-sticky;
+        position: sticky;
+      }
+    }
+
+    .sidebar .nav-link {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .sidebar .nav-link .feather {
+      margin-right: 4px;
+      color: #999;
+    }
+
+    .sidebar .nav-link.active {
+      color: #007bff;
+    }
+
+    .sidebar .nav-link:hover .feather,
+    .sidebar .nav-link.active .feather {
+      color: inherit;
+    }
+
+    .sidebar-heading {
+      font-size: .75rem;
+      text-transform: uppercase;
+    }
+
+    /*
+    * Content
+    */
+
+    [role="main"] {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    /*
+    * Navbar
+    */
+
+    .navbar-brand {
+      padding-top: .75rem;
+      padding-bottom: .75rem;
+      font-size: 1rem;
+      background-color: rgba(0, 0, 0, .25);
+      box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+    }
+
+    .navbar .form-control {
+      padding: .75rem 1rem;
+      border-width: 0;
+      border-radius: 0;
+    }
+
+    .form-control-dark {
+      color: #fff;
+      background-color: rgba(255, 255, 255, .1);
+      border-color: rgba(255, 255, 255, .1);
+    }
+
+    .form-control-dark:focus {
+      border-color: transparent;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
+    }
+
+    .group-members {
+      position: absolute;
+      bottom: 0;
+    }
+
+    .group-members ul {
+      padding-left: 25px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container-fluid">
+    <div class="row">
+      <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+          <h2>Rtree</h2>
+          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Insert mode</span>
+            <a class="d-flex align-items-center text-muted" href="#">
+              <span data-feather="plus-circle"></span>
+            </a>
+          </h6>
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a id="add-polygon" class="nav-link" href="#">
+                Add polygon
+              </a>
+            </li>
+            <li class="nav-item">
+              <a id="add-point" class="nav-link" href="#">
+                <span data-feather="file"></span>
+                Add point
+              </a>
+            </li>
+          </ul>
+
+          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Search mode</span>
+            <a class="d-flex align-items-center text-muted" href="#">
+              <span data-feather="plus-circle"></span>
+            </a>
+          </h6>
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a id="search-nearest" class="nav-link" href="#">
+                K Nearest
+              </a>
+            </li>
+            <li class="nav-item">
+              <a id="search-range" class="nav-link" href="#">
+                <span data-feather="file"></span>
+                Range Search
+              </a>
+            </li>
+          </ul>
+          <hr />
+          <div class="information">
+            <h3>Info</h3>
+            <div id="extra-view"></div>
+          </div>
+          <div class="group-members">
+            <button class="btn btn-warning" data-toggle="modal" data-target="#treeModal">RESET TREE</button>
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              <span>Group members</span>
+              <a class="d-flex align-items-center text-muted" href="#">
+                <span data-feather="plus-circle"></span>
+              </a>
+            </h6>
+            <ul class="nav flex-column">
+              <li>Luis Colchado</li>
+              <li>Laura Estacio</li>
+              <li>Víctor Flores</li>
+              <li>Josué Ttito</li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      <main role="main" class="col-md-10 ml-sm-auto" style="position: relative">
+        <div id="messages" class="messages"></div>
+        <div style="position: relative">
+          <div class="area" id="svg-area" style="height: 100vh"></div>
+          <div class="logger">
+            <div class="logger-box logger-regions">
+              <h3>Regions</h3>
+              <p>Click on any region to show/hide.</p>
+              <div id="logger-regions"></div>
+            </div>
+          </div>
+        </div>
+      </main
+    </div>
+  </div>
+
+
+  <div class="modal fade" id="treeModal" tabindex="-1" role="dialog" aria-labelledby="treeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="treeModalLabel">Reset tree</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            Enter a valid M and m.
+            <div class="form-group">
+              <input type="number" min="1" max="50" value="5" class="form-control" id="input-M" aria-describedby="emailHelp" placeholder="M">
+              <small id="emailHelp" class="form-text text-muted">(+) Maximum number of entries per node.</small>
+            </div>
+            <div class="form-group">
+              <input type="number" min="1" max="50" value="2" class="form-control" id="input-m" aria-describedby="emailHelp" placeholder="m">
+              <small id="emailHelp" class="form-text text-muted">(-) Minimum number of entries per node.</small>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button  id="reset-button" type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<script type="text/javascript" src="vendor.22abbfb122845d11417a.js"></script><script type="text/javascript" src="bundle.4ebe84661231354eb28e.js"></script></body>
+</html>
