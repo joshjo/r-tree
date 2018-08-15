@@ -233,7 +233,7 @@ function drawRegions(regions) {
     const { id, polygon, color, isLeaf } = regions[i];
     const firstPoint = polygon[0];
     const textColor = isLeaf ? color : '#ffffffaa';
-    const textLabel = isLeaf ? 'R' : 'P';
+    const textLabel = isLeaf ? 'R' : 'R';
     // const posit
     const textSvg = draw.text(`${textLabel}${id}`).fill(textColor).font({ size: 16 });
     if (isLeaf) {

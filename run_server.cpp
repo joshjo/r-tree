@@ -6,7 +6,7 @@
 //Models for rtree
 // #include "models/Polygon.cpp"
 // #include "models/Region.cpp"
-#include "models/RTreeplus.h"
+#include "models/RTree.h"
 // Added for the json-example
 #define BOOST_SPIRIT_THREADSAFE
 #include <boost/property_tree/json_parser.hpp>
@@ -22,8 +22,6 @@
 #endif
 
 using namespace std;
-//#define pair<int, int> point
-// Added for the json-example:
 using namespace boost::property_tree;
 
 typedef int dtype;
@@ -42,7 +40,6 @@ int main() {
     server.resource["^/rtree$"]["GET"] = [&tree](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         stringstream stream;
         SimpleWeb::CaseInsensitiveMultimap header;
-        // string json_string = "{\"polygon\": [";
         stream << tree->get_json_string();
         response->write_get(stream,header);
 
@@ -115,16 +112,18 @@ int main() {
             }
             size_t k = pt.get_child("k").get_value<size_t>();
             P point(v[0], v[1]);
-
             vector <Polygon<dtype> * > array = tree->nearestSearch(point, k);
-            for (size_t i = 0; i < array.size(); i += 1) {
-                json_string += to_string(array[i]->get_id()) + ",";
+            if(array.size() != 0)
+            {
+                for (auto a : array) {
+                    json_string += to_string(a->get_id()) + ",";
+                }
+                json_string.pop_back();
+                json_string += "]}";
+                tree->print();
+                stream << json_string;
+                response->write_get(stream,header);
             }
-            json_string.pop_back();
-            json_string += "]}";
-            tree->print();
-            stream << json_string;
-            response->write_get(stream,header);
         } catch (const exception &e) {
             response->write(
                 SimpleWeb::StatusCode::client_error_bad_request,
