@@ -441,6 +441,7 @@ $('#reset-button').on('click', () => {
     $('#treeModal').modal('hide');
     polygons = [];
     regions = [];
+    mapRegions = {};
     drawRegions([]);
     drawPolygons([]);
     $('#logger-regions').html("");
