@@ -454,7 +454,7 @@ public:
         }
     }
 
-    void distanceSide(Point<T> &P, Point<T> &A, Point<T> &B, T &distance){
+    int distanceSide(Point<T> &P, Point<T> &A, Point<T> &B){
         Point<T> a = A - B;
         Point<T> b = a.getOrthogonal();
         Point<T> minDistance;
