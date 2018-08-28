@@ -373,10 +373,10 @@ public:
                     PointNodeDistComparison(point)
                 );
             }
-            cout << "Current knearest" << endl;
-            for (size_t i = 0; i < knearest.size(); i += 1) {
-                knearest[i]->print();
-            }
+            // cout << "Current knearest" << endl;
+            // for (size_t i = 0; i < knearest.size(); i += 1) {
+            //     knearest[i]->print();
+            // }
         }
         return knearest;
     }
@@ -514,7 +514,7 @@ public:
             json_string.pop_back();
             json_string += "]},";
         }
-        
+
         for (auto node : NL) {
             if (!root) {
                 continue;
