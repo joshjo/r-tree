@@ -454,6 +454,37 @@ public:
         }
     }
 
+    void distanceSide(Point<T> &P, Point<T> &A, Point<T> &B, T &distance){
+        Point<T> a = A - B;
+        Point<T> b = a.getOrthogonal();
+        Point<T> minDistance;
+
+        double coeff = (double)(a.y*b.x - a.x*b.y);
+        double beta = (double)( a.x*(P.y - A.y) - a.y*(P.x - A.x) );
+
+        beta = beta / coeff;
+
+        Point<T> C( ((double)P.x) + beta * ((double)b.x),
+                    ((double)P.y) + beta * ((double)b.y)  ); 
+        Point<T> PC = P - C; 
+
+        // La distancia es perpendicular
+        if( A.x < C.x && C.x < B.x ) return PC.length2();
+        if( B.x < C.x && C.x < A.x ) return PC.length2();
+
+        //  La distancia no es perpendicular
+        Point<T> PA = P - A;
+        Point<T> PB = P - B;
+
+        T disPA = PA.length2();
+        T disPB = PB.length2();
+
+        if( disPA<disPB ) return disPA;
+        else              return disPB;
+    }
+
+
+
     void get_all(Node<T> *node, vector<Node<T> *> & leafs, vector<Node<T> *> & notleafs) {
         notleafs.push_back(node);
         if (node -> leaf) {
