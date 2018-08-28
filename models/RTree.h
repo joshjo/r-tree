@@ -334,6 +334,7 @@ public:
             missingVisits.end(),
             PointNodeDistComparison(point)
         );
+        // cout << "knearest" << endl;
         while (missingVisits.size() && k > 0) {
             Node <T> * current = missingVisits[0];
             missingVisits.erase(
@@ -465,8 +466,8 @@ public:
         beta = beta / coeff;
 
         Point<T> C( ((double)P.x) + beta * ((double)b.x),
-                    ((double)P.y) + beta * ((double)b.y)  ); 
-        Point<T> PC = P - C; 
+                    ((double)P.y) + beta * ((double)b.y)  );
+        Point<T> PC = P - C;
 
         // La distancia es perpendicular
         if( A.x < C.x && C.x < B.x ) return PC.length2();

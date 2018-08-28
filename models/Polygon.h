@@ -60,7 +60,6 @@ class Polygon
             return minDistance;
         }
 
-
         void getMinMax(){
             T xmin = inf;
             T ymin = inf;
@@ -96,7 +95,7 @@ class Polygon
             return id;
         }
         void print() {
-            cout << "points: ";
+            cout << "Id: " << id << " points: ";
             for (size_t i = 0; i < points.size(); ++i) {
                 points[i].print();
                 cout << " - ";
@@ -117,33 +116,77 @@ class Polygon
             return str;
         }
 
-        T minDist(P & p) {
-            // This functions is repeated in the node.
-            T sx, sy, tx, ty, rx, ry;
+        int distanceSide(Point<T> &P, Point<T> &A, Point<T> &B){
+            Point<T> a = A - B;
+            Point<T> b = a.getOrthogonal();
+            Point<T> minDistance;
 
-            rx = p.x;
-            ry = p.y;
+            double coeff = (double)(a.y*b.x - a.x*b.y);
+            double beta = (double)( a.x*(P.y - A.y) - a.y*(P.x - A.x) );
 
-            sx = min.x;
-            sy = min.y;
+            beta = beta / coeff;
 
-            tx = max.x;
-            ty = max.y;
+            Point<T> C( ((double)P.x) + beta * ((double)b.x),
+                        ((double)P.y) + beta * ((double)b.y)  );
+            Point<T> PC = P - C;
 
-            if (p.x < sx) {
-                rx = sx;
-            } else if (p.x > tx) {
-                rx = tx;
-            }
+            // La distancia es perpendicular
+            if( A.x < C.x && C.x < B.x ) return PC.length2();
+            if( B.x < C.x && C.x < A.x ) return PC.length2();
 
-            if (p.y < sy) {
-                ry = sy;
-            } else if (p.y > ty) {
-                ry = ty;
-            }
+            //  La distancia no es perpendicular
+            Point<T> PA = P - A;
+            Point<T> PB = P - B;
 
-            return pow(abs(p.x - rx), 2) + pow(abs(p.y - ry), 2);
+            T disPA = PA.length2();
+            T disPB = PB.length2();
+
+            if( disPA<disPB ) return disPA;
+            else              return disPB;
         }
+
+        T minDist(P & p) {
+            T minimum = inf;
+            int pointsSize = points.size();
+            if (pointsSize == 1) {
+                P diff = p - points[0];
+                return diff.length2();
+            }
+            for (int i = 0; i < pointsSize; i++) {
+                T currDist = distanceSide(p, points[i], points[(i + 1) % pointsSize]);
+                if (currDist < minimum) {
+                    minimum = currDist;
+                }
+            }
+            return minimum;
+            // This functions is repeated in the node.
+            // T sx, sy, tx, ty, rx, ry;
+
+            // rx = p.x;
+            // ry = p.y;
+
+            // sx = min.x;
+            // sy = min.y;
+
+            // tx = max.x;
+            // ty = max.y;
+
+            // if (p.x < sx) {
+            //     rx = sx;
+            // } else if (p.x > tx) {
+            //     rx = tx;
+            // }
+
+            // if (p.y < sy) {
+            //     ry = sy;
+            // } else if (p.y > ty) {
+            //     ry = ty;
+            // }
+
+            // return pow(abs(p.x - rx), 2) + pow(abs(p.y - ry), 2);
+        }
+
+
         vector<P> get_box() {
             vector<P> points(4);
             points[0] = P(min.x, min.y);
