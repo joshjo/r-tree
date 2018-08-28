@@ -159,7 +159,7 @@ draw.click((e) => {
   if (isDrawingPolygon) {
     const previuosPointsLenght = currentPoints.length;
     currentPoints.push([e.offsetX, e.offsetY]);
-    currentPoints = hull(currentPoints, Infinity);
+    // currentPoints = hull(currentPoints, Infinity);
     if (!previuosPointsLenght) {
       newPolygon = draw.polygon().fill("none").stroke(styles.newPolygonStroke);
       lastPolygonPoint = draw.circle(10).move(e.offsetX - 5, e.offsetY - 5);
