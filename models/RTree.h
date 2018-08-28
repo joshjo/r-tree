@@ -538,7 +538,7 @@ public:
             if (!root) {
                 continue;
             }
-            json_string += "{\"id\":" + std::to_string(node->rectangle->id) + ",\"isLeaf\": true" + ",\"color\":\"" + node->color + "\",\"polygon\": [";
+            json_string += "{\"id\":" + std::to_string(node->rectangle->id) + ",\"isLeaf\": true" + ",\"color\":\"" + node->color + "\",\"polygon\": [ ";
 
             for (auto point: node->get_rectangle()->get_box()) {
                 json_string += point.to_string();
@@ -554,7 +554,7 @@ public:
             if (node->leaf) {
                 continue;
             }
-            json_string += "{\"id\":" + std::to_string(node->rectangle->id) + ",\"isLeaf\": false" + ",\"color\":\"" + node->color + "\",\"polygon\": [";
+            json_string += "{\"id\":" + std::to_string(node->rectangle->id) + ",\"isLeaf\": false" + ",\"color\":\"" + node->color + "\",\"polygon\": [ ";
 
             for (auto point: node->get_rectangle()->get_box()) {
                 json_string += point.to_string();
