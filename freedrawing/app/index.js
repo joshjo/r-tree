@@ -46,6 +46,7 @@ let isDrawingPoint = false
 let isDrawingPolygon = false;
 let isDrawingKPoint = false;
 let isDrawingRegion = false;
+let rectanglePolygon = undefined;
 
 function getRandomColor() {
   var letters = "9ABCDEF".split('');
@@ -120,6 +121,7 @@ draw.dblclick(() => {
 function removeRegion() {
   isDrawingRegion = false;
   if (rangeRectangle) {
+    rectanglePolygon = undefined;
     rangeRectangle.remove();
     rangeRectangle = undefined;
   }
@@ -197,12 +199,21 @@ draw.click((e) => {
       });
     }
   } else if (isDrawingRegion) {
+    if (rectanglePolygon !== undefined) {
+      cancelDrawing();
+
+      rangeRectangle = draw.rect().fill('#ffffff55').draw();
+      rangeRectangle.on('drawstart', (e) => {
+        isDrawingRegion = true;
+      });
+      return;
+    }
     const attrs = rangeRectangle.attr();
     const polygon = [
       [attrs.x, attrs.y],
       [attrs.x + attrs.width, attrs.y + attrs.height],
     ];
-    console.log(polygon, [e.offsetX, e.offsetY]);
+    rectanglePolygon = polygon;
     api.post("range", {
       polygon
     }).then(d => {
